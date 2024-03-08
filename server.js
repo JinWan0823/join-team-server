@@ -1,10 +1,16 @@
 const express = require("express");
 const app = express();
+const cors = require("cors");
 
 app.use(express.static(__dirname + "/public"));
 app.set("view engine", "ejs");
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+  })
+);
 
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 
 let db;
 const url =
@@ -26,9 +32,33 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
-app.get("/list", async (req, res) => {
-  let result = await db.collection("club").find().toArray();
-  console.log(result);
+app.get("/club", async (req, res) => {
+  try {
+    let result = await db.collection("club").find().toArray();
+    console.log(result);
+    res.json(result);
+    // res.render("list.ejs", { posts: result });
+  } catch (err) {
+    console.error("데이터 조회 오류 : ", err);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
 
-  res.render("list.ejs", { posts: result });
+app.get("/club/:id", async (req, res) => {
+  try {
+    const itemId = req.params.id;
+    console.log(itemId);
+    const result = await db
+      .collection("club")
+      .findOne({ _id: new ObjectId(itemId) });
+    console.log(result);
+    if (!result) {
+      res.status(404).json({ error: "데이터를 찾을 수 없습니다." });
+      return;
+    }
+    res.json(result);
+  } catch (error) {
+    console.error("데이터 조회 오류:", error);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
 });
