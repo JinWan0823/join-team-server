@@ -37,7 +37,6 @@ app.get("/", (req, res) => {
 app.get("/club", async (req, res) => {
   try {
     let result = await db.collection("club").find().toArray();
-    console.log(result);
     res.json(result);
     // res.render("list.ejs", { posts: result });
   } catch (err) {
@@ -49,7 +48,6 @@ app.get("/club", async (req, res) => {
 app.get("/club/:id", async (req, res) => {
   try {
     const itemId = req.params.id;
-    console.log(itemId);
     const result = await db
       .collection("club")
       .findOne({ _id: new ObjectId(itemId) });
@@ -66,13 +64,12 @@ app.get("/club/:id", async (req, res) => {
 });
 
 app.post("/feed", async (req, res) => {
-  console.log(req.body);
   const content = req.body.content;
   const hashTag = req.body.hashTag;
   const img = req.body.img;
 
   try {
-    if (!content || hashTag.length === 0 || !img) {
+    if (!content || hashTag.length === 0) {
       res.status(400).json({ message: "Bad Request : 잘못된 요청입니다." });
     } else {
       await db.collection("feed").insertOne({
@@ -85,6 +82,50 @@ app.post("/feed", async (req, res) => {
     }
   } catch (error) {
     console.error("데이터 등록 오류 : ", error);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
+
+app.get("/feed/:id", async (req, res) => {
+  try {
+    const itemId = req.params.id;
+    if (req.body.hashTag.length > 9) {
+      res.status(400).json({ message: "Bad Request : 잘못된 요청입니다." });
+    } else {
+      const result = await db
+        .collection("feed")
+        .findOne({ _id: new ObjectId(itemId) });
+      if (!result) {
+        res.status(404).json({ error: "데이터를 찾을 수 없습니다." });
+        return;
+      }
+      res.json(result);
+    }
+  } catch (error) {
+    console.error("데이터 조회 오류:", error);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
+
+app.put("/feed/:id", async (req, res) => {
+  const itemId = req.params.id;
+  try {
+    await db.collection("feed").updateOne(
+      { _id: new ObjectId(itemId) },
+      {
+        //$inc - 증감 $unset - 필드값삭제
+        //updateMany -동시에 여러 document 수정
+        //필터링 - $gt / $gte / $lt / $lte / $ne
+        $set: {
+          content: req.body.content,
+          hashTag: req.body.hashTag,
+          img: req.body.img,
+        },
+      }
+    );
+    res.status(201).json({ message: "데이터 수정 성공" });
+  } catch (error) {
+    console.error("데이터 수정 오류 : ", error);
     res.status(500).json({ error: "서버 오류 발생" });
   }
 });
