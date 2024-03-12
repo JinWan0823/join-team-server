@@ -3,7 +3,6 @@ const app = express();
 const cors = require("cors");
 
 app.use(express.static(__dirname + "/public"));
-app.set("view engine", "ejs");
 app.use(
   cors({
     origin: "http://localhost:3000",
@@ -30,15 +29,10 @@ new MongoClient(url)
     console.error(err);
   });
 
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
-});
-
 app.get("/club", async (req, res) => {
   try {
     let result = await db.collection("club").find().toArray();
-    res.json(result);
-    // res.render("list.ejs", { posts: result });
+    res.status(201).json(result);
   } catch (err) {
     console.error("데이터 조회 오류 : ", err);
     res.status(500).json({ error: "서버 오류 발생" });
@@ -59,6 +53,16 @@ app.get("/club/:id", async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error("데이터 조회 오류:", error);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
+
+app.get("/feed", async (req, res) => {
+  try {
+    let result = await db.collection("feed").find().toArray();
+    res.status(201).json(result);
+  } catch (err) {
+    console.error("데이터 조회 오류 : ", err);
     res.status(500).json({ error: "서버 오류 발생" });
   }
 });
@@ -89,18 +93,14 @@ app.post("/feed", async (req, res) => {
 app.get("/feed/:id", async (req, res) => {
   try {
     const itemId = req.params.id;
-    if (req.body.hashTag.length > 9) {
-      res.status(400).json({ message: "Bad Request : 잘못된 요청입니다." });
-    } else {
-      const result = await db
-        .collection("feed")
-        .findOne({ _id: new ObjectId(itemId) });
-      if (!result) {
-        res.status(404).json({ error: "데이터를 찾을 수 없습니다." });
-        return;
-      }
-      res.json(result);
+    const result = await db
+      .collection("feed")
+      .findOne({ _id: new ObjectId(itemId) });
+    if (!result) {
+      res.status(404).json({ error: "데이터를 찾을 수 없습니다." });
+      return;
     }
+    res.json(result);
   } catch (error) {
     console.error("데이터 조회 오류:", error);
     res.status(500).json({ error: "서버 오류 발생" });
@@ -110,22 +110,39 @@ app.get("/feed/:id", async (req, res) => {
 app.put("/feed/:id", async (req, res) => {
   const itemId = req.params.id;
   try {
-    await db.collection("feed").updateOne(
-      { _id: new ObjectId(itemId) },
-      {
-        //$inc - 증감 $unset - 필드값삭제
-        //updateMany -동시에 여러 document 수정
-        //필터링 - $gt / $gte / $lt / $lte / $ne
-        $set: {
-          content: req.body.content,
-          hashTag: req.body.hashTag,
-          img: req.body.img,
-        },
-      }
-    );
-    res.status(201).json({ message: "데이터 수정 성공" });
+    if (req.body.hashTag.length > 9) {
+      res.status(400).json({ message: "Bad Request : 잘못된 요청입니다." });
+    } else {
+      await db.collection("feed").updateOne(
+        { _id: new ObjectId(itemId) },
+        {
+          //$inc - 증감 $unset - 필드값삭제
+          //updateMany -동시에 여러 document 수정
+          //필터링 - $gt / $gte / $lt / $lte / $ne
+          $set: {
+            content: req.body.content,
+            hashTag: req.body.hashTag,
+            img: req.body.img,
+          },
+        }
+      );
+      res.status(201).json({ message: "데이터 수정 성공" });
+    }
   } catch (error) {
     console.error("데이터 수정 오류 : ", error);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
+
+app.delete("/feed/:id", async (req, res) => {
+  const itemId = req.params.id;
+  try {
+    const result = await db
+      .collection("feed")
+      .deleteOne({ _id: new ObjectId(itemId) });
+    res.status(201).json({ result, message: "데이터 삭제 성공" });
+  } catch (error) {
+    console.error("데이터 삭제 오류 : ", error);
     res.status(500).json({ error: "서버 오류 발생" });
   }
 });
