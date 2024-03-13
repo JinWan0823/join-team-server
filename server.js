@@ -1,23 +1,38 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const connectDB = require("./database");
+
+const clubRoutes = require("./routes/clubRoutes");
+const feedRoutes = require("./routes/feedRoutes");
 
 app.use(express.static(__dirname + "/public"));
 app.use(
   cors({
     origin: "http://localhost:3000",
+    credentials: true,
   })
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const { MongoClient, ObjectId } = require("mongodb");
+const session = require("express-session");
+const passport = require("passport");
+const LocalStrategy = require("passport-local");
+const { ObjectId } = require("mongodb");
+app.use(passport.initialize());
+app.use(
+  session({
+    secret: "비번",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 60 * 60 * 1000 },
+  })
+);
+app.use(passport.session());
 
 let db;
-const url =
-  "mongodb+srv://admin:Wlsdhks21!@cluster0.r8evwke.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-new MongoClient(url)
-  .connect()
+connectDB
   .then((client) => {
     console.log("DB연결성공");
     db = client.db("joinTeam");
@@ -29,120 +44,49 @@ new MongoClient(url)
     console.error(err);
   });
 
-app.get("/club", async (req, res) => {
-  try {
-    let result = await db.collection("club").find().toArray();
-    res.status(201).json(result);
-  } catch (err) {
-    console.error("데이터 조회 오류 : ", err);
-    res.status(500).json({ error: "서버 오류 발생" });
-  }
-});
-
-app.get("/club/:id", async (req, res) => {
-  try {
-    const itemId = req.params.id;
-    const result = await db
-      .collection("club")
-      .findOne({ _id: new ObjectId(itemId) });
-    console.log(result);
+passport.use(
+  new LocalStrategy(async (id, pwd, cb) => {
+    let result = await db.collection("user").findOne({ username: id });
     if (!result) {
-      res.status(404).json({ error: "데이터를 찾을 수 없습니다." });
-      return;
+      return cb(null, false, { message: "아이디 DB에 없음" });
     }
-    res.json(result);
-  } catch (error) {
-    console.error("데이터 조회 오류:", error);
-    res.status(500).json({ error: "서버 오류 발생" });
-  }
-});
-
-app.get("/feed", async (req, res) => {
-  try {
-    let result = await db.collection("feed").find().toArray();
-    res.status(201).json(result);
-  } catch (err) {
-    console.error("데이터 조회 오류 : ", err);
-    res.status(500).json({ error: "서버 오류 발생" });
-  }
-});
-
-app.post("/feed", async (req, res) => {
-  const content = req.body.content;
-  const hashTag = req.body.hashTag;
-  const img = req.body.img;
-
-  try {
-    if (!content || hashTag.length === 0) {
-      res.status(400).json({ message: "Bad Request : 잘못된 요청입니다." });
+    if (result.password == pwd) {
+      return cb(null, result);
     } else {
-      await db.collection("feed").insertOne({
-        content: content,
-        hashTag: hashTag,
-        img: img,
-        date: new Date(),
-      });
-      res.status(201).json({ message: "데이터 등록 성공" });
+      return cb(null, false, { message: "비번불일치" });
     }
-  } catch (error) {
-    console.error("데이터 등록 오류 : ", error);
-    res.status(500).json({ error: "서버 오류 발생" });
-  }
+  })
+);
+
+passport.serializeUser((user, done) => {
+  //쿠키 생성
+  process.nextTick(() => {
+    done(null, { id: user._id, username: user.username });
+  });
 });
 
-app.get("/feed/:id", async (req, res) => {
-  try {
-    const itemId = req.params.id;
-    const result = await db
-      .collection("feed")
-      .findOne({ _id: new ObjectId(itemId) });
-    if (!result) {
-      res.status(404).json({ error: "데이터를 찾을 수 없습니다." });
-      return;
-    }
-    res.json(result);
-  } catch (error) {
-    console.error("데이터 조회 오류:", error);
-    res.status(500).json({ error: "서버 오류 발생" });
-  }
+passport.deserializeUser(async (user, done) => {
+  //유저가 보낸 쿠키분석
+  const result = await db
+    .collection("user")
+    .findOne({ _id: new ObjectId(user.id) });
+
+  delete result.password;
+  process.nextTick(() => {
+    done(null, result);
+  });
 });
 
-app.put("/feed/:id", async (req, res) => {
-  const itemId = req.params.id;
-  try {
-    if (req.body.hashTag.length > 9) {
-      res.status(400).json({ message: "Bad Request : 잘못된 요청입니다." });
-    } else {
-      await db.collection("feed").updateOne(
-        { _id: new ObjectId(itemId) },
-        {
-          //$inc - 증감 $unset - 필드값삭제
-          //updateMany -동시에 여러 document 수정
-          //필터링 - $gt / $gte / $lt / $lte / $ne
-          $set: {
-            content: req.body.content,
-            hashTag: req.body.hashTag,
-            img: req.body.img,
-          },
-        }
-      );
-      res.status(201).json({ message: "데이터 수정 성공" });
-    }
-  } catch (error) {
-    console.error("데이터 수정 오류 : ", error);
-    res.status(500).json({ error: "서버 오류 발생" });
-  }
+app.post("/login", async (req, res, next) => {
+  passport.authenticate("local", (error, user, info) => {
+    if (error) return res.status(500).json(error);
+    if (!user) return res.status(401).json(info.message);
+    req.logIn(user, (err) => {
+      if (err) return next(err);
+      res.status(201).json(user);
+    });
+  })(req, res, next);
 });
 
-app.delete("/feed/:id", async (req, res) => {
-  const itemId = req.params.id;
-  try {
-    const result = await db
-      .collection("feed")
-      .deleteOne({ _id: new ObjectId(itemId) });
-    res.status(201).json({ result, message: "데이터 삭제 성공" });
-  } catch (error) {
-    console.error("데이터 삭제 오류 : ", error);
-    res.status(500).json({ error: "서버 오류 발생" });
-  }
-});
+app.use("/club", clubRoutes);
+app.use("/feed", feedRoutes);
