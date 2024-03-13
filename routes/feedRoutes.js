@@ -1,10 +1,21 @@
 const express = require("express");
-const { ObjectId } = require("mongodb");
 const router = express.Router();
+const { ObjectId } = require("mongodb");
+const connectDB = require("../database");
+
+let db;
+connectDB
+  .then((client) => {
+    db = client.db("joinTeam");
+  })
+  .catch((err) => {
+    console.log(err);
+  });
 
 router.get("/", async (req, res) => {
+  console.log(req.user);
   try {
-    let result = await req.db.collection("feed").find().toArray();
+    let result = await db.collection("feed").find().toArray();
     res.status(201).json(result);
   } catch (err) {
     console.error("데이터 조회 오류 : ", err);
@@ -21,7 +32,7 @@ router.post("/", async (req, res) => {
     if (!content || hashTag.length === 0) {
       res.status(400).json({ message: "Bad Request : 잘못된 요청입니다." });
     } else {
-      await req.db.collection("feed").insertOne({
+      await db.collection("feed").insertOne({
         content: content,
         hashTag: hashTag,
         img: img,
@@ -38,7 +49,7 @@ router.post("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const itemId = req.params.id;
-    const result = await req.db
+    const result = await db
       .collection("feed")
       .findOne({ _id: new ObjectId(itemId) });
     if (!result) {
@@ -58,7 +69,7 @@ router.put("/:id", async (req, res) => {
     if (req.body.hashTag.length > 10) {
       res.status(400).json({ message: "Bad Request : 잘못된 요청입니다." });
     } else {
-      await req.db.collection("feed").updateOne(
+      await db.collection("feed").updateOne(
         { _id: new ObjectId(itemId) },
         {
           $set: {
@@ -79,7 +90,7 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   const itemId = req.params.id;
   try {
-    const result = await req.db
+    const result = await db
       .collection("feed")
       .deleteOne({ _id: new ObjectId(itemId) });
     res.status(201).json({ result, message: "데이터 삭제 성공" });
