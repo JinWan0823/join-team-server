@@ -2,7 +2,12 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const connectDB = require("./database");
+const { ObjectId } = require("mongodb");
+const session = require("express-session");
+const passport = require("passport");
+const LocalStrategy = require("passport-local");
 const bcrypt = require("bcrypt");
+const MongoStore = require("connect-mongo");
 
 const clubRoutes = require("./routes/clubRoutes");
 const feedRoutes = require("./routes/feedRoutes");
@@ -16,11 +21,6 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-const session = require("express-session");
-const passport = require("passport");
-const LocalStrategy = require("passport-local");
-const { ObjectId } = require("mongodb");
 app.use(passport.initialize());
 app.use(
   session({
@@ -28,6 +28,11 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 60 * 60 * 1000 },
+    store: MongoStore.create({
+      mongoUrl:
+        "mongodb+srv://admin:Wlsdhks21!@cluster0.r8evwke.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+      dbName: "joinTeam",
+    }),
   })
 );
 app.use(passport.session());
@@ -51,7 +56,8 @@ passport.use(
     if (!result) {
       return cb(null, false, { message: "아이디 DB에 없음" });
     }
-    if (result.password == pwd) {
+    const pwdCheck = await bcrypt.compare(pwd, result.password);
+    if (pwdCheck) {
       return cb(null, result);
     } else {
       return cb(null, false, { message: "비번불일치" });
@@ -91,14 +97,42 @@ app.post("/login", async (req, res, next) => {
 
 //hashing : 문자 -> 랜덤문자 변환
 app.post("/signup", async (req, res) => {
-  const hashingPwd = await bcrypt.hash(req.body.password, 10);
-  console.log(req.body);
-  console.log(hashingPwd);
-  const result = await db.collection("user").insertOne({
-    username: req.body.username,
-    password: hashingPwd,
-  });
-  res.status(201).json({ result, message: "회원가입 성공" });
+  const idChk = await db
+    .collection("user")
+    .findOne({ username: req.body.username });
+  try {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const pwdRegex =
+      /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,16}$/;
+
+    if (!emailRegex.test(req.body.username)) {
+      res.status(400).json({ message: "유효한 이메일 주소를 입력하세요." });
+      return;
+    }
+
+    if (!pwdRegex.test(req.body.password)) {
+      res.status(400).json({
+        message: "비밀번호는 영문,숫자,특수문자를 포함하여 8~16자여야 합니다.",
+      });
+      return;
+    }
+
+    if (idChk) {
+      res.status(409).json({ message: "이미 존재하는 아이디입니다." });
+      return;
+    }
+    const hashingPwd = await bcrypt.hash(req.body.password, 10);
+    const result = await db.collection("user").insertOne({
+      username: req.body.username,
+      password: hashingPwd,
+      name: req.body.name,
+      interestList: req.body.interestList,
+    });
+    res.status(201).json({ result, message: "회원가입 성공" });
+  } catch (error) {
+    console.error("데이터 등록 오류 : ", error);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
 });
 
 app.use("/club", clubRoutes);
