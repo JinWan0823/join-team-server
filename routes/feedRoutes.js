@@ -13,7 +13,6 @@ connectDB
   });
 
 router.get("/", async (req, res) => {
-  console.log(req.user);
   try {
     let result = await db.collection("feed").find().toArray();
     res.status(201).json(result);
@@ -29,9 +28,11 @@ router.post("/", async (req, res) => {
   const img = req.body.img;
 
   try {
-    if (!content || hashTag.length === 0) {
+    if (!content || hashTag.length === 0 || !req.user) {
+      console.log(req.user);
       res.status(400).json({ message: "Bad Request : 잘못된 요청입니다." });
     } else {
+      console.log(req.user);
       await db.collection("feed").insertOne({
         content: content,
         hashTag: hashTag,
@@ -88,12 +89,17 @@ router.put("/:id", async (req, res) => {
 });
 
 router.delete("/:id", async (req, res) => {
+  console.log(req.user);
+  if (!req.user) {
+    res.status(401).json({ message: "인증되지 않은 사용자입니다." });
+    return;
+  }
   const itemId = req.params.id;
   try {
     const result = await db
       .collection("feed")
       .deleteOne({ _id: new ObjectId(itemId) });
-    res.status(201).json({ result, message: "데이터 삭제 성공" });
+    res.status(201).json({ message: "데이터 삭제 성공" });
   } catch (error) {
     console.error("데이터 삭제 오류 : ", error);
     res.status(500).json({ error: "서버 오류 발생" });
