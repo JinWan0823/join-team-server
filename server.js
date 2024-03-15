@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const connectDB = require("./database");
+const bcrypt = require("bcrypt");
 
 const clubRoutes = require("./routes/clubRoutes");
 const feedRoutes = require("./routes/feedRoutes");
@@ -86,6 +87,18 @@ app.post("/login", async (req, res, next) => {
       res.status(201).json(user);
     });
   })(req, res, next);
+});
+
+//hashing : 문자 -> 랜덤문자 변환
+app.post("/signup", async (req, res) => {
+  const hashingPwd = await bcrypt.hash(req.body.password, 10);
+  console.log(req.body);
+  console.log(hashingPwd);
+  const result = await db.collection("user").insertOne({
+    username: req.body.username,
+    password: hashingPwd,
+  });
+  res.status(201).json({ result, message: "회원가입 성공" });
 });
 
 app.use("/club", clubRoutes);
