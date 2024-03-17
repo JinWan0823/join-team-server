@@ -4,14 +4,23 @@ const cors = require('cors');
 const connectDB = require('./database');
 const session = require('express-session');
 const passport = require('passport');
-const LocalStrategy = require('passport-local');
 const MongoStore = require('connect-mongo');
+const crypto = require('crypto');
 
 const clubRoutes = require('./routes/clubRoutes');
 const feedRoutes = require('./routes/feedRoutes');
 const signupRoutes = require('./routes/signupRoutes');
 const loginRoutes = require('./routes/loginRoutes');
 const initializePassport = require('./passport');
+
+const generateRandomString = (length) => {
+  return crypto
+    .randomBytes(Math.ceil(length / 2))
+    .toString('hex')
+    .slice(0, length);
+};
+
+const newSecret = generateRandomString(32);
 
 app.use(express.static(__dirname + '/public'));
 app.use(
@@ -25,7 +34,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 app.use(
   session({
-    secret: '비번',
+    secret: newSecret,
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 60 * 60 * 1000 },
@@ -51,21 +60,6 @@ connectDB
   .catch((err) => {
     console.error(err);
   });
-
-passport.use(
-  new LocalStrategy(async (id, pwd, cb) => {
-    let result = await db.collection('user').findOne({ username: id });
-    if (!result) {
-      return cb(null, false, { message: '아이디 DB에 없음' });
-    }
-    const pwdCheck = await bcrypt.compare(pwd, result.password);
-    if (pwdCheck) {
-      return cb(null, result);
-    } else {
-      return cb(null, false, { message: '비번불일치' });
-    }
-  })
-);
 
 app.use('/club', clubRoutes);
 app.use('/feed', feedRoutes);
