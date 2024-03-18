@@ -6,6 +6,7 @@ const session = require('express-session');
 const passport = require('passport');
 const MongoStore = require('connect-mongo');
 const crypto = require('crypto');
+require('dotenv').config();
 
 const clubRoutes = require('./routes/clubRoutes');
 const feedRoutes = require('./routes/feedRoutes');
