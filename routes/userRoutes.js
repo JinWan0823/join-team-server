@@ -26,4 +26,22 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.put("/comment", async (req, res) => {
+  const user = req.user;
+  try {
+    const result = await db.collection("user").updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          introComment: req.body.introComment,
+        },
+      }
+    );
+    res.status(201).json({ result });
+  } catch (error) {
+    console.error("데이터 조회 오류 : ", err);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
+
 module.exports = router;

@@ -62,6 +62,14 @@ router.post("/", upload.array("images", 10), async (req, res) => {
         images: imagesLocation,
         date: new Date(),
       });
+      await db.collection("user").updateOne(
+        { _id: req.user._id },
+        {
+          $inc: {
+            feedCount: 1,
+          },
+        }
+      );
       res.status(201).json(result);
     }
   } catch (error) {
@@ -114,6 +122,15 @@ router.delete("/:id", async (req, res) => {
     const result = await db
       .collection("feed")
       .deleteOne({ _id: new ObjectId(itemId) });
+    await db.collection("user").updateOne(
+      { _id: req.user._id },
+      {
+        $inc: {
+          feedCount: -1,
+        },
+      }
+    );
+    console.log(result);
     res.status(201).json({ message: "데이터 삭제 성공" });
   } catch (error) {
     console.error("데이터 삭제 오류 : ", error);
