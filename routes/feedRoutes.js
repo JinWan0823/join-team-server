@@ -23,6 +23,23 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/:id", async (req, res) => {
+  try {
+    const itemId = req.params.id;
+    const result = await db
+      .collection("feed")
+      .findOne({ _id: new ObjectId(itemId) });
+    if (!result) {
+      res.status(404).json({ error: "데이터를 찾을 수 없습니다." });
+      return;
+    }
+    res.json(result);
+  } catch (error) {
+    console.error("데이터 조회 오류:", error);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
+
 router.post("/", upload.array("images", 10), async (req, res) => {
   // upload.single("images")(req, res, (err) => {
   //   if (err) return res.send("서버 이미지 업로드 에러");
@@ -32,11 +49,9 @@ router.post("/", upload.array("images", 10), async (req, res) => {
   const images = req.files;
   let imagesLocation = [];
 
-  images.forEach((location) => {
-    imagesLocation.push(location);
+  images.forEach((img) => {
+    imagesLocation.push(img.location);
   });
-  console.log(imagesLocation);
-
   try {
     if (!content || hashTag.length === 0 || !req.user) {
       res.status(400).json({ message: "Bad Request : 잘못된 요청입니다." });
@@ -55,27 +70,19 @@ router.post("/", upload.array("images", 10), async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
-  try {
-    const itemId = req.params.id;
-    const result = await db
-      .collection("feed")
-      .findOne({ _id: new ObjectId(itemId) });
-    if (!result) {
-      res.status(404).json({ error: "데이터를 찾을 수 없습니다." });
-      return;
-    }
-    res.json(result);
-  } catch (error) {
-    console.error("데이터 조회 오류:", error);
-    res.status(500).json({ error: "서버 오류 발생" });
-  }
-});
-
-router.put("/:id", async (req, res) => {
+router.put("/:id", upload.array("images", 10), async (req, res) => {
+  console.log(req.files);
   const itemId = req.params.id;
+  const content = req.body.content;
+  const hashTag = req.body.hashTag;
+  const images = req.files;
+  let imagesLocation = [];
+
+  images.forEach((img) => {
+    imagesLocation.push(img.location);
+  });
   try {
-    if (req.body.hashTag.length > 10) {
+    if (!content || hashTag.length === 0 || !req.user) {
       res.status(400).json({ message: "Bad Request : 잘못된 요청입니다." });
     } else {
       await db.collection("feed").updateOne(
@@ -84,7 +91,7 @@ router.put("/:id", async (req, res) => {
           $set: {
             content: req.body.content,
             hashTag: req.body.hashTag,
-            img: req.body.img,
+            images: imagesLocation,
           },
         }
       );

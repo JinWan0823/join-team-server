@@ -16,7 +16,10 @@ const upload = multer({
     s3: s3,
     bucket: "jointeam",
     key: function (req, file, cb) {
-      cb(null, Date.now().toString()); //업로드시 파일명 변경가능
+      cb(
+        null,
+        "feed_images/" + Date.now().toString() + "_" + file.originalname
+      );
     },
   }),
 });

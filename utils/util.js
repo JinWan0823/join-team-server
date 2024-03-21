@@ -5,4 +5,4 @@ const chkUser = (req, res, next) => {
   next();
 };
 
-module.exports = { chkUser };
+module.exports = chkUser;

@@ -12,6 +12,7 @@ const clubRoutes = require("./routes/clubRoutes");
 const feedRoutes = require("./routes/feedRoutes");
 const signupRoutes = require("./routes/signupRoutes");
 const loginRoutes = require("./routes/loginRoutes");
+const userRoutes = require("./routes/userRoutes");
 const initializePassport = require("./passport");
 
 const generateRandomString = (length) => {
@@ -66,3 +67,4 @@ app.use("/club", clubRoutes);
 app.use("/feed", feedRoutes);
 app.use("/signup", signupRoutes);
 app.use("/login", loginRoutes);
+app.use("/user", userRoutes);
