@@ -15,11 +15,14 @@ connectDB
 
 router.get("/", async (req, res) => {
   const user = req.user;
-  console.log(user);
   try {
-    const result = await db.collection("user").findOne({ _id: user._id });
-    console.log(result);
-    res.status(201).json(result);
+    if (user) {
+      const result = await db.collection("user").findOne({ _id: user._id });
+      console.log(result);
+      res.status(201).json(result);
+    } else {
+      res.status(401).json({ message: "인증되지 않은 사용자입니다." });
+    }
   } catch (error) {
     console.error("데이터 조회 오류 : ", err);
     res.status(500).json({ error: "서버 오류 발생" });
