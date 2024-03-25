@@ -13,16 +13,28 @@ connectDB
 
 router.get("/", async (req, res) => {
   const query = req.query.val;
+  const searchQuery = [
+    {
+      $search: {
+        index: "clubName",
+        text: { query: query, path: "clubName" },
+      },
+    },
+    // { $sort: { 날짜: 1 } }, // 정렬
+    // { $limit: 10 }, // 제한
+    // { $skip: 10 }, // 건너뛰기
+    // { $project: { _id: 0 } }, // 필드 숨기기
+  ];
   try {
     if (query) {
       const result = await db
         .collection("club")
-        .find({ clubName: { $regex: query } })
+        .aggregate(searchQuery)
         .toArray();
-      res.status(201).json({ result });
+      res.status(201).json(result);
     } else {
       const result = await db.collection("club").find().toArray();
-      res.status(201).json({ result });
+      res.status(201).json(result);
     }
   } catch (error) {
     console.error("데이터 조회 오류 : ", err);
