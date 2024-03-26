@@ -53,13 +53,20 @@ router.post("/", upload.array("images", 10), async (req, res) => {
     imagesLocation.push(img.location);
   });
   try {
-    if (!content || hashTag.length === 0 || !req.user) {
+    if (
+      !content ||
+      hashTag.length === 0 ||
+      !req.user ||
+      imagesLocation.length === 0
+    ) {
       res.status(400).json({ message: "Bad Request : 잘못된 요청입니다." });
     } else {
       const result = await db.collection("feed").insertOne({
         content: content,
         hashTag: hashTag,
         images: imagesLocation,
+        user: req.user._id,
+        username: req.user.username,
         date: new Date(),
       });
       await db.collection("user").updateOne(
