@@ -126,9 +126,10 @@ router.delete("/:id", async (req, res) => {
   }
   const itemId = req.params.id;
   try {
-    const result = await db
-      .collection("feed")
-      .deleteOne({ _id: new ObjectId(itemId) });
+    const result = await db.collection("feed").deleteOne({
+      _id: new ObjectId(itemId),
+      user: new ObjectId(req.user._id),
+    });
     await db.collection("user").updateOne(
       { _id: req.user._id },
       {
