@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { ObjectId } = require("mongodb");
 const connectDB = require("../database");
+const { clubUpload } = require("../s3Upload");
 
 let db;
 connectDB
@@ -35,6 +36,45 @@ router.get("/:id", async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error("데이터 조회 오류:", error);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
+
+router.post("/", clubUpload.single("images"), async (req, res) => {
+  if (!req.user) {
+    res.status(401).json({ message: "인증되지 않은 사용자입니다." });
+  }
+  console.log(req.body);
+
+  const clubName = req.body.clubName;
+  const category = req.body.category;
+  const information = req.body.information;
+  const images = req.file.location;
+  const master = req.user._id;
+  try {
+    console.log(images);
+    if (!clubName || !category || !images || !information) {
+      res.status(400).json({ message: "Bad Request : 잘못된 요청입니다." });
+    } else {
+      const result = await db.collection("club").insertOne({
+        clubName: clubName,
+        category: category,
+        images: images,
+        information: information,
+        master: master,
+        masterName: req.user.username,
+        date: new Date(),
+        member: [
+          {
+            memberId: master,
+            name: req.user.username,
+          },
+        ],
+      });
+      res.status(201).json(result);
+    }
+  } catch (error) {
+    console.error("데이터 등록 오류 : ", error);
     res.status(500).json({ error: "서버 오류 발생" });
   }
 });

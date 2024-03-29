@@ -11,7 +11,7 @@ const s3 = new S3Client({
   },
 });
 
-const upload = multer({
+const feedUpload = multer({
   storage: multerS3({
     s3: s3,
     bucket: "jointeam",
@@ -24,4 +24,17 @@ const upload = multer({
   }),
 });
 
-module.exports = upload;
+const clubUpload = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: "jointeam",
+    key: function (req, file, cb) {
+      cb(
+        null,
+        "club_images/" + Date.now().toString() + "_" + file.originalname
+      );
+    },
+  }),
+});
+
+module.exports = { feedUpload, clubUpload };
