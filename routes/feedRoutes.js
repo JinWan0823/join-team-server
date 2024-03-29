@@ -2,7 +2,8 @@ const express = require("express");
 const router = express.Router();
 const { ObjectId } = require("mongodb");
 const connectDB = require("../database");
-const upload = require("../s3Upload");
+const { feedUpload } = require("../s3Upload");
+const chkUser = require("../utils/util");
 
 let db;
 connectDB
@@ -40,7 +41,8 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", upload.array("images", 10), async (req, res) => {
+router.post("/", feedUpload.array("images", 10), async (req, res) => {
+  chkUser();
   // upload.single("images")(req, res, (err) => {
   //   if (err) return res.send("서버 이미지 업로드 에러");
   // });
@@ -53,13 +55,20 @@ router.post("/", upload.array("images", 10), async (req, res) => {
     imagesLocation.push(img.location);
   });
   try {
-    if (!content || hashTag.length === 0 || !req.user) {
+    if (
+      !content ||
+      hashTag.length === 0 ||
+      !req.user ||
+      imagesLocation.length === 0
+    ) {
       res.status(400).json({ message: "Bad Request : 잘못된 요청입니다." });
     } else {
       const result = await db.collection("feed").insertOne({
         content: content,
         hashTag: hashTag,
         images: imagesLocation,
+        user: req.user._id,
+        username: req.user.username,
         date: new Date(),
       });
       await db.collection("user").updateOne(
@@ -78,7 +87,8 @@ router.post("/", upload.array("images", 10), async (req, res) => {
   }
 });
 
-router.put("/:id", upload.array("images", 10), async (req, res) => {
+router.put("/:id", feedUpload.array("images", 10), async (req, res) => {
+  chkUser();
   console.log(req.files);
   const itemId = req.params.id;
   const content = req.body.content;
@@ -112,16 +122,13 @@ router.put("/:id", upload.array("images", 10), async (req, res) => {
 });
 
 router.delete("/:id", async (req, res) => {
-  console.log(req.user);
-  if (!req.user) {
-    res.status(401).json({ message: "인증되지 않은 사용자입니다." });
-    return;
-  }
+  chkUser();
   const itemId = req.params.id;
   try {
-    const result = await db
-      .collection("feed")
-      .deleteOne({ _id: new ObjectId(itemId) });
+    const result = await db.collection("feed").deleteOne({
+      _id: new ObjectId(itemId),
+      user: new ObjectId(req.user._id),
+    });
     await db.collection("user").updateOne(
       { _id: req.user._id },
       {
