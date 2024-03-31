@@ -23,6 +23,18 @@ router.get("/", async (req, res) => {
   }
 });
 
+// router.get("/myclub", async (req, res) => {
+//   const id = req.user._id;
+
+//   try {
+//     let result = await db.collection("club").aggregate(searchQuery).toArray();
+//     res.status(201).json(result);
+//   } catch (err) {
+//     console.error("데이터 조회 오류 : ", err);
+//     res.status(500).json({ error: "서버 오류 발생" });
+//   }
+// });
+
 router.get("/:id", async (req, res) => {
   try {
     const itemId = req.params.id;
@@ -62,12 +74,12 @@ router.post("/", clubUpload.single("images"), async (req, res) => {
         images: images,
         information: information,
         master: master,
-        masterName: req.user.username,
+        masterName: req.user.name,
         date: new Date(),
         member: [
           {
             memberId: master,
-            name: req.user.username,
+            name: req.user.name,
           },
         ],
       });
@@ -77,6 +89,35 @@ router.post("/", clubUpload.single("images"), async (req, res) => {
     console.error("데이터 등록 오류 : ", error);
     res.status(500).json({ error: "서버 오류 발생" });
   }
+});
+
+router.post("/join/:id", async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "인증되지 않은 사용자입니다." });
+  }
+
+  const itemId = req.params.id;
+  const club = await db
+    .collection("club")
+    .findOne({ _id: new ObjectId(itemId) });
+
+  if (!club) {
+    return res.status(404).json({ message: "클럽을 찾을 수 없습니다." });
+  }
+
+  if (club.joinedMember >= 20) {
+    return res.status(400).json({ message: "정원 초과" });
+  }
+
+  const updatedUser = await db.collection("user").updateOne(
+    { _id: new ObjectId(req.user._id) },
+    {
+      $addToSet: {
+        joinedClub: new ObjectId(itemId),
+      },
+    }
+  );
+  res.status(200).json({ message: "클럽에 가입되었습니다." });
 });
 
 module.exports = router;
