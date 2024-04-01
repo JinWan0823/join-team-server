@@ -3,6 +3,7 @@ const router = express.Router();
 const { ObjectId } = require("mongodb");
 const connectDB = require("../database");
 const { clubUpload } = require("../s3Upload");
+const { chkUser } = require("../utils/middleware");
 
 let db;
 connectDB
@@ -52,12 +53,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", clubUpload.single("images"), async (req, res) => {
-  if (!req.user) {
-    res.status(401).json({ message: "인증되지 않은 사용자입니다." });
-  }
-  console.log(req.body);
-
+router.post("/", chkUser, clubUpload.single("images"), async (req, res) => {
   const clubName = req.body.clubName;
   const category = req.body.category;
   const information = req.body.information;
@@ -91,11 +87,8 @@ router.post("/", clubUpload.single("images"), async (req, res) => {
   }
 });
 
-router.post("/join/:id", async (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ message: "인증되지 않은 사용자입니다." });
-  }
-
+//클럽 참가 API
+router.post("/join/:id", chkUser, async (req, res) => {
   const itemId = req.params.id;
   const club = await db
     .collection("club")
@@ -109,11 +102,27 @@ router.post("/join/:id", async (req, res) => {
     return res.status(400).json({ message: "정원 초과" });
   }
 
+  const joinedClub = await db.collection("club").updateOne(
+    { _id: new ObjectId(itemId) },
+    {
+      $addToSet: {
+        member: {
+          memberId: req.user._id,
+          name: req.user.name,
+          userThumb: req.user.thumb,
+        },
+      },
+    }
+  );
+
   const updatedUser = await db.collection("user").updateOne(
     { _id: new ObjectId(req.user._id) },
     {
       $addToSet: {
-        joinedClub: new ObjectId(itemId),
+        joinedClub: {
+          clubId: new ObjectId(itemId),
+          clubName: club.clubName,
+        },
       },
     }
   );

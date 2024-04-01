@@ -6,4 +6,4 @@ const chkUser = (req, res, next) => {
   }
 };
 
-module.exports = chkUser;
+module.exports = { chkUser };

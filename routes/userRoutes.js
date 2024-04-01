@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const { ObjectId } = require("mongodb");
 const connectDB = require("../database");
-const chkUser = require("../utils/util");
 
 let db;
 connectDB

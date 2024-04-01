@@ -3,7 +3,6 @@ const router = express.Router();
 const { ObjectId } = require("mongodb");
 const connectDB = require("../database");
 const { feedUpload } = require("../s3Upload");
-const chkUser = require("../utils/util");
 
 let db;
 connectDB
@@ -42,7 +41,6 @@ router.get("/:id", async (req, res) => {
 });
 
 router.post("/", feedUpload.array("images", 10), async (req, res) => {
-  chkUser();
   // upload.single("images")(req, res, (err) => {
   //   if (err) return res.send("서버 이미지 업로드 에러");
   // });
@@ -88,7 +86,6 @@ router.post("/", feedUpload.array("images", 10), async (req, res) => {
 });
 
 router.put("/:id", feedUpload.array("images", 10), async (req, res) => {
-  chkUser();
   console.log(req.files);
   const itemId = req.params.id;
   const content = req.body.content;
@@ -122,7 +119,6 @@ router.put("/:id", feedUpload.array("images", 10), async (req, res) => {
 });
 
 router.delete("/:id", async (req, res) => {
-  chkUser();
   const itemId = req.params.id;
   try {
     const result = await db.collection("feed").deleteOne({
