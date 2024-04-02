@@ -37,4 +37,17 @@ const clubUpload = multer({
   }),
 });
 
-module.exports = { feedUpload, clubUpload };
+const userUpload = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: "jointeam",
+    key: function (req, file, cb) {
+      cb(
+        null,
+        "user_images/" + Date.now().toString() + "_" + file.originalname
+      );
+    },
+  }),
+});
+
+module.exports = { feedUpload, clubUpload, userUpload };
