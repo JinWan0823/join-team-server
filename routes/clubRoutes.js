@@ -24,17 +24,24 @@ router.get("/", async (req, res) => {
   }
 });
 
-// router.get("/myclub", async (req, res) => {
-//   const id = req.user._id;
+router.get("/myclub", chkUser, async (req, res) => {
+  const userId = req.user._id;
 
-//   try {
-//     let result = await db.collection("club").aggregate(searchQuery).toArray();
-//     res.status(201).json(result);
-//   } catch (err) {
-//     console.error("데이터 조회 오류 : ", err);
-//     res.status(500).json({ error: "서버 오류 발생" });
-//   }
-// });
+  try {
+    const user = await db
+      .collection("user")
+      .findOne({ _id: new ObjectId(userId) });
+    const clubIds = user.joinedClub.map((club) => club.clubId);
+    const clubs = await db
+      .collection("club")
+      .find({ _id: { $in: clubIds } })
+      .toArray();
+    res.status(201).json(clubs);
+  } catch (err) {
+    console.error("데이터 조회 오류 : ", err);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
 
 router.get("/:id", async (req, res) => {
   try {
