@@ -6,4 +6,12 @@ const chkUser = (req, res, next) => {
   }
 };
 
-module.exports = { chkUser };
+const extendSessionMiddleware = (req, res, next) => {
+  if (req.session && req.session.cookie && !req.session.cookie.expires) {
+    req.session.cookie.expires = new Date(Date.now() + 60 * 60 * 1000);
+    req.session.save();
+  }
+  next();
+};
+
+module.exports = { chkUser, extendSessionMiddleware };

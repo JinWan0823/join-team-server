@@ -16,6 +16,7 @@ const logoutRoutes = require("./routes/logoutRoutes");
 const userRoutes = require("./routes/userRoutes");
 const searchRoutes = require("./routes/searchRoutes");
 const initializePassport = require("./passport");
+const { extendSessionMiddleware } = require("./utils/middleware");
 
 const generateRandomString = (length) => {
   return crypto
@@ -50,6 +51,7 @@ app.use(
   })
 );
 app.use(passport.session());
+app.use(extendSessionMiddleware);
 
 let db;
 connectDB
