@@ -41,9 +41,6 @@ router.get("/:id", async (req, res) => {
 });
 
 router.post("/", feedUpload.array("images", 10), async (req, res) => {
-  // upload.single("images")(req, res, (err) => {
-  //   if (err) return res.send("서버 이미지 업로드 에러");
-  // });
   const content = req.body.content;
   const hashTag = req.body.hashTag;
   const images = req.files;
@@ -66,7 +63,7 @@ router.post("/", feedUpload.array("images", 10), async (req, res) => {
         hashTag: hashTag,
         images: imagesLocation,
         user: req.user._id,
-        username: req.user.username,
+        username: req.user.name,
         date: new Date(),
       });
       await db.collection("user").updateOne(
