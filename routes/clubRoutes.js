@@ -60,6 +60,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+//클럽 생성 API
 router.post("/", chkUser, clubUpload.single("images"), async (req, res) => {
   const clubName = req.body.clubName;
   const category = req.body.category;
@@ -115,8 +116,6 @@ router.post("/join/:id", chkUser, async (req, res) => {
       $addToSet: {
         member: {
           memberId: req.user._id,
-          name: req.user.name,
-          userThumb: req.user.thumb,
         },
       },
     }
@@ -128,12 +127,11 @@ router.post("/join/:id", chkUser, async (req, res) => {
       $addToSet: {
         joinedClub: {
           clubId: new ObjectId(itemId),
-          clubName: club.clubName,
         },
       },
     }
   );
-  res.status(200).json({ message: "클럽에 가입되었습니다." });
+  res.status(201).json({ message: "클럽에 가입되었습니다." });
 });
 
 module.exports = router;
