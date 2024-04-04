@@ -20,7 +20,7 @@ router.get("/", chkUser, async (req, res) => {
     if (user) {
       const result = await db.collection("user").findOne({ _id: user._id });
       console.log(result);
-      res.status(201).json(result);
+      res.status(200).json(result);
     } else {
       res.status(401).json({ message: "인증되지 않은 사용자입니다." });
     }
@@ -41,7 +41,7 @@ router.get("/:id", async (req, res) => {
       return;
     }
     const { thumbnail, name, _id } = result;
-    res.status(201).json({ thumbnail, name, _id });
+    res.status(200).json({ thumbnail, name, _id });
   } catch (error) {
     console.error("데이터 조회 오류:", error);
     res.status(500).json({ error: "서버 오류 발생" });
