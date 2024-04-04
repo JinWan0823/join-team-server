@@ -31,10 +31,10 @@ router.get("/", async (req, res) => {
         .collection("club")
         .aggregate(searchQuery)
         .toArray();
-      res.status(201).json(result);
+      res.status(200).json(result);
     } else {
       const result = await db.collection("club").find().toArray();
-      res.status(201).json(result);
+      res.status(200).json(result);
     }
   } catch (error) {
     console.error("데이터 조회 오류 : ", err);

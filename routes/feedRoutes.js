@@ -18,7 +18,7 @@ connectDB
 router.get("/", async (req, res) => {
   try {
     let result = await db.collection("feed").find().toArray();
-    res.status(201).json(result);
+    res.status(200).json(result);
   } catch (err) {
     console.error("데이터 조회 오류 : ", err);
     res.status(500).json({ error: "서버 오류 발생" });
@@ -33,7 +33,7 @@ router.get("/myfeed", chkUser, async (req, res) => {
       .collection("feed")
       .find({ writer: new ObjectId(userId) })
       .toArray();
-    res.status(201).json(result);
+    res.status(200).json(result);
   } catch (error) {
     console.error("데이터 조회 오류 : ", error);
     res.status(500).json({ error: "서버 오류 발생" });
@@ -50,7 +50,7 @@ router.get("/:id", async (req, res) => {
       res.status(404).json({ error: "데이터를 찾을 수 없습니다." });
       return;
     }
-    res.json(result);
+    res.status(200).json(result);
   } catch (error) {
     console.error("데이터 조회 오류:", error);
     res.status(500).json({ error: "서버 오류 발생" });
@@ -151,7 +151,7 @@ router.delete("/:id", async (req, res) => {
       }
     );
     console.log(result);
-    res.status(201).json({ message: "데이터 삭제 성공" });
+    res.status(204).json({ message: "데이터 삭제 성공" });
   } catch (error) {
     console.error("데이터 삭제 오류 : ", error);
     res.status(500).json({ error: "서버 오류 발생" });
