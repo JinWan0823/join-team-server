@@ -3,6 +3,7 @@ const router = express.Router();
 const { ObjectId } = require("mongodb");
 const connectDB = require("../database");
 const { feedUpload } = require("../s3Upload");
+const { chkUser } = require("../utils/middleware");
 
 let db;
 connectDB
@@ -13,12 +14,28 @@ connectDB
     console.log(err);
   });
 
+// 피드 조회 API
 router.get("/", async (req, res) => {
   try {
     let result = await db.collection("feed").find().toArray();
     res.status(201).json(result);
   } catch (err) {
     console.error("데이터 조회 오류 : ", err);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
+
+// 마이피드 조회 API
+router.get("/myfeed", chkUser, async (req, res) => {
+  const userId = req.user._id;
+  try {
+    let result = await db
+      .collection("feed")
+      .find({ writer: new ObjectId(userId) })
+      .toArray();
+    res.status(201).json(result);
+  } catch (error) {
+    console.error("데이터 조회 오류 : ", error);
     res.status(500).json({ error: "서버 오류 발생" });
   }
 });
@@ -40,6 +57,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+//피드 생성 API
 router.post("/", feedUpload.array("images", 10), async (req, res) => {
   const content = req.body.content;
   const hashTag = req.body.hashTag;
@@ -82,6 +100,7 @@ router.post("/", feedUpload.array("images", 10), async (req, res) => {
   }
 });
 
+//피드 수정 API
 router.put("/:id", feedUpload.array("images", 10), async (req, res) => {
   console.log(req.files);
   const itemId = req.params.id;
@@ -115,6 +134,7 @@ router.put("/:id", feedUpload.array("images", 10), async (req, res) => {
   }
 });
 
+//피드 삭제 API
 router.delete("/:id", async (req, res) => {
   const itemId = req.params.id;
   try {
