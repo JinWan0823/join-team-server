@@ -48,23 +48,24 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.put("/comment", chkUser, async (req, res) => {
-  const user = req.user;
-  try {
-    const result = await db.collection("user").updateOne(
-      { _id: user._id },
-      {
-        $set: {
-          introComment: req.body.introComment,
-        },
-      }
-    );
-    res.status(201).json({ result });
-  } catch (error) {
-    console.error("데이터 조회 오류 : ", error);
-    res.status(500).json({ error: "서버 오류 발생" });
-  }
-});
+//마이페이지 간단소개 수정 API
+// router.put("/comment", chkUser, async (req, res) => {
+//   const user = req.user;
+//   try {
+//     const result = await db.collection("user").updateOne(
+//       { _id: user._id },
+//       {
+//         $set: {
+//           introComment: req.body.introComment,
+//         },
+//       }
+//     );
+//     res.status(201).json({ result });
+//   } catch (error) {
+//     console.error("데이터 조회 오류 : ", error);
+//     res.status(500).json({ error: "서버 오류 발생" });
+//   }
+// });
 
 router.put(
   "/profile",
@@ -82,6 +83,7 @@ router.put(
             $set: {
               name: req.body.name,
               interestList: req.body.interestList,
+              introComment: req.body.introComment,
               thumbnail: images,
             },
           }
@@ -93,6 +95,7 @@ router.put(
             $set: {
               name: req.body.name,
               interestList: req.body.interestList,
+              introComment: req.body.introComment,
             },
           }
         );
