@@ -17,9 +17,30 @@ connectDB
 router.get("/", async (req, res) => {
   try {
     let result = await db.collection("club").find().toArray();
-    res.status(201).json(result);
-  } catch (err) {
-    console.error("데이터 조회 오류 : ", err);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("데이터 조회 오류 : ", error);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
+
+router.get("/recommend", async (req, res) => {
+  try {
+    if (req.user) {
+      const interestList = req.user.interestList.split("\\");
+      const clubs = await db
+        .collection("club")
+        .find({ category: { $in: interestList } })
+        .toArray();
+      const randomClubs = getRandomElements(clubs, 3);
+      res.status(200).json(randomClubs);
+    } else {
+      const allClubs = await db.collection("club").find().toArray();
+      const randomClubs = getRandomElements(allClubs, 3);
+      res.status(200).json(randomClubs);
+    }
+  } catch (error) {
+    console.error("데이터 조회 오류 : ", error);
     res.status(500).json({ error: "서버 오류 발생" });
   }
 });
@@ -36,7 +57,7 @@ router.get("/myclub", chkUser, async (req, res) => {
       .collection("club")
       .find({ _id: { $in: clubIds } })
       .toArray();
-    res.status(201).json(clubs);
+    res.status(200).json(clubs);
   } catch (err) {
     console.error("데이터 조회 오류 : ", err);
     res.status(500).json({ error: "서버 오류 발생" });
@@ -53,7 +74,7 @@ router.get("/:id", async (req, res) => {
       res.status(404).json({ error: "데이터를 찾을 수 없습니다." });
       return;
     }
-    res.status(201).json(result);
+    res.status(200).json(result);
   } catch (error) {
     console.error("데이터 조회 오류:", error);
     res.status(500).json({ error: "서버 오류 발생" });
