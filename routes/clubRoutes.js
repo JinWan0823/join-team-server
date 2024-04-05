@@ -3,7 +3,7 @@ const router = express.Router();
 const { ObjectId } = require("mongodb");
 const connectDB = require("../database");
 const { clubUpload } = require("../s3Upload");
-const { chkUser } = require("../utils/middleware");
+const { chkUser, getRandomElements } = require("../utils/middleware");
 
 let db;
 connectDB
@@ -25,6 +25,7 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/recommend", async (req, res) => {
+  console.log(req.user);
   try {
     if (req.user) {
       const interestList = req.user.interestList.split("\\");
@@ -39,6 +40,16 @@ router.get("/recommend", async (req, res) => {
       const randomClubs = getRandomElements(allClubs, 3);
       res.status(200).json(randomClubs);
     }
+  } catch (error) {
+    console.error("데이터 조회 오류 : ", error);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
+
+router.get("/hot", async (req, res) => {
+  try {
+    let result = await db.collection("club").find().toArray();
+    res.status(200).json(result);
   } catch (error) {
     console.error("데이터 조회 오류 : ", error);
     res.status(500).json({ error: "서버 오류 발생" });
@@ -88,9 +99,11 @@ router.post("/", chkUser, clubUpload.single("images"), async (req, res) => {
   const information = req.body.information;
   const images = req.file.location;
   const master = req.user._id;
+  const sido = req.body.sido;
+  const gugun = req.body.gugun;
   try {
     console.log(images);
-    if (!clubName || !category || !images || !information) {
+    if (!clubName || !category || !images || !information || !sido || !gugun) {
       res.status(400).json({ message: "Bad Request : 잘못된 요청입니다." });
     } else {
       const result = await db.collection("club").insertOne({
@@ -100,11 +113,12 @@ router.post("/", chkUser, clubUpload.single("images"), async (req, res) => {
         information: information,
         master: master,
         masterName: req.user.name,
+        sido: sido,
+        gugun: gugun,
         date: new Date(),
         member: [
           {
             memberId: master,
-            name: req.user.name,
           },
         ],
       });
