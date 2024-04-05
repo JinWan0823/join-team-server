@@ -14,4 +14,9 @@ const extendSessionMiddleware = (req, res, next) => {
   next();
 };
 
-module.exports = { chkUser, extendSessionMiddleware };
+const getRandomElements = (array, count) => {
+  const shuffled = array.sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+};
+
+module.exports = { chkUser, extendSessionMiddleware, getRandomElements };
