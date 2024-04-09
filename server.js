@@ -30,7 +30,7 @@ const newSecret = generateRandomString(32);
 app.use(express.static(__dirname + "/public"));
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "https://join-team-rho.vercel.app/"],
     credentials: true,
   })
 );

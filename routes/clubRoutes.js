@@ -56,9 +56,28 @@ router.get("/hot", async (req, res) => {
   }
 });
 
+// 마이페이지 가입한 클럽 조회 API
 router.get("/myclub", chkUser, async (req, res) => {
   const userId = req.user._id;
+  try {
+    const user = await db
+      .collection("user")
+      .findOne({ _id: new ObjectId(userId) });
+    const clubIds = user.joinedClub.map((club) => club.clubId);
+    const clubs = await db
+      .collection("club")
+      .find({ _id: { $in: clubIds } })
+      .toArray();
+    res.status(200).json(clubs);
+  } catch (err) {
+    console.error("데이터 조회 오류 : ", err);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
 
+// 유저 가입 클럽 조회 API
+router.get("/myclub/:id", async (req, res) => {
+  const userId = req.params.id;
   try {
     const user = await db
       .collection("user")
@@ -100,10 +119,10 @@ router.post("/", chkUser, clubUpload.single("images"), async (req, res) => {
   const images = req.file.location;
   const master = req.user._id;
   const sido = req.body.sido;
-  const gugun = req.body.gugun;
+  const gugun = req.body.gugun || "";
   try {
     console.log(images);
-    if (!clubName || !category || !images || !information || !sido || !gugun) {
+    if (!clubName || !category || !images || !information || !sido) {
       res.status(400).json({ message: "Bad Request : 잘못된 요청입니다." });
     } else {
       const result = await db.collection("club").insertOne({
