@@ -40,6 +40,21 @@ router.get("/myfeed", chkUser, async (req, res) => {
   }
 });
 
+// 유저피드 조회 API
+router.get("/myfeed/:id", async (req, res) => {
+  const userId = req.params.id;
+  try {
+    let result = await db
+      .collection("feed")
+      .find({ writer: new ObjectId(userId) })
+      .toArray();
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("데이터 조회 오류 : ", error);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
+
 router.get("/:id", async (req, res) => {
   try {
     const itemId = req.params.id;
