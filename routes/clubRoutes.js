@@ -152,9 +152,22 @@ router.post("/", chkUser, clubUpload.single("images"), async (req, res) => {
 //클럽 참가 API
 router.post("/join/:id", chkUser, async (req, res) => {
   const itemId = req.params.id;
+  console.log(req.user._id);
   const club = await db
     .collection("club")
     .findOne({ _id: new ObjectId(itemId) });
+
+  const isMember = club.member.some((member) => {
+    console.log(member.memberId);
+    console.log(req.user._id);
+    return member.memberId.toString() === req.user._id.toString();
+  });
+
+  console.log(isMember);
+
+  if (isMember) {
+    return res.status(400).json({ message: "이미 가입한 클럽입니다." });
+  }
 
   if (!club) {
     return res.status(404).json({ message: "클럽을 찾을 수 없습니다." });
