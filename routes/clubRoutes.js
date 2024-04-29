@@ -94,6 +94,7 @@ router.get("/myclub/:id", async (req, res) => {
   }
 });
 
+//클럽 ID 조회 API
 router.get("/:id", async (req, res) => {
   try {
     const itemId = req.params.id;
@@ -199,6 +200,51 @@ router.post("/join/:id", chkUser, async (req, res) => {
     }
   );
   res.status(201).json({ message: "클럽에 가입되었습니다." });
+});
+
+//클럽 활동 추가 API
+router.put("/:id", chkUser, clubUpload.single("images"), async (req, res) => {
+  const clubId = req.params.id;
+  const clubData = await db
+    .collection("club")
+    .findOne({ _id: new ObjectId(clubId) });
+  console.log(clubData.master);
+  console.log(req.user._id);
+  if (clubData.master.toString() !== req.user._id.toString()) {
+    return res.status(401).json({ message: "인증되지 않은 사용자입니다." });
+  }
+
+  const activityName = req.body.activityName;
+  const content = req.body.content;
+  const date = req.body.date;
+  const images = req.file.location;
+
+  if (!activityName && !content && !date && !images) {
+    return res
+      .status(400)
+      .json({ message: "Bad Request : 잘못된 요청입니다." });
+  }
+
+  const newActivity = {
+    activityName: activityName,
+    content: content,
+    date: date,
+    images: images,
+  };
+
+  try {
+    await db.collection("club").updateOne(
+      { _id: new ObjectId(clubId) },
+      {
+        $push: { activity: newActivity },
+        $inc: { activityCount: 1 },
+      }
+    );
+    res.status(200).json({ message: "활동이 성공적으로 추가되었습니다." });
+  } catch (error) {
+    console.error("데이터 수정 오류 : ", error);
+    res.status(500).json({ message: "서버 오류 발생" });
+  }
 });
 
 module.exports = router;
