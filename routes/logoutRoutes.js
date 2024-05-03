@@ -20,10 +20,10 @@ router.get("/", (req, res) => {
         .status(500)
         .json({ message: "로그아웃 중 오류가 발생했습니다." });
     }
-    res
-      .clearCookie("connect.sid")
-      .status(204)
-      .json({ message: "로그아웃 되었습니다." });
+    req.session.destroy(() => {
+      res.clearCookie("connect.sid");
+      res.status(204).json({ message: "로그아웃을 완료했습니다." });
+    });
   });
 });
 
