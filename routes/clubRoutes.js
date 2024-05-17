@@ -218,8 +218,9 @@ router.put("/:id", chkUser, clubUpload.single("images"), async (req, res) => {
   const content = req.body.content;
   const date = req.body.date;
   const images = req.file.location;
+  const location = req.body.location;
 
-  if (!activityName && !content && !date && !images) {
+  if (!activityName && !content && !date && !location && !images) {
     return res
       .status(400)
       .json({ message: "Bad Request : 잘못된 요청입니다." });
@@ -229,6 +230,7 @@ router.put("/:id", chkUser, clubUpload.single("images"), async (req, res) => {
     activityName: activityName,
     content: content,
     date: date,
+    location: location,
     images: images,
   };
 

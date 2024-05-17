@@ -48,6 +48,8 @@ router.post("/", async (req, res) => {
       joinedClub: [],
       thumbnail:
         "https://jointeam.s3.ap-northeast-2.amazonaws.com/utill/defaultThumb.png",
+      followers: [],
+      followings: [],
     });
     res.status(201).json({ result, message: "회원가입 성공" });
   } catch (error) {
