@@ -98,14 +98,18 @@ router.get("/myclub/:id", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const itemId = req.params.id;
-    const result = await db
+    const club = await db
       .collection("club")
       .findOne({ _id: new ObjectId(itemId) });
-    if (!result) {
+    if (!club) {
       res.status(404).json({ error: "데이터를 찾을 수 없습니다." });
       return;
     }
-    res.status(200).json(result);
+
+    const limitedActivities = club.activity.slice(0, 3);
+    const limitedClub = { ...club, activity: limitedActivities };
+
+    res.status(200).json(limitedClub);
   } catch (error) {
     console.error("데이터 조회 오류:", error);
     res.status(500).json({ error: "서버 오류 발생" });
