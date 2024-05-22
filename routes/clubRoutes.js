@@ -116,6 +116,36 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+//클럽 활동 page 조회 API
+router.get("/:id/activity", async (req, res) => {
+  try {
+    const itemId = req.params.id;
+    const club = await db
+      .collection("club")
+      .findOne({ _id: new ObjectId(itemId) });
+    if (!club) {
+      res.status(404).json({ error: "데이터를 찾을 수 없습니다." });
+      return;
+    }
+
+    const page = parseInt(req.query.page) || 1;
+
+    console.log(page);
+    const itemsPerPage = 3;
+
+    const startIndex = (page - 1) * itemsPerPage;
+    const limitedActivities = club.activity.slice(
+      startIndex,
+      startIndex + itemsPerPage
+    );
+
+    res.status(200).json(limitedActivities);
+  } catch (error) {
+    console.error("데이터 조회 오류:", error);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
+
 //클럽 생성 API
 router.post("/", chkUser, clubUpload.single("images"), async (req, res) => {
   const clubName = req.body.clubName;
@@ -252,5 +282,7 @@ router.put("/:id", chkUser, clubUpload.single("images"), async (req, res) => {
     res.status(500).json({ message: "서버 오류 발생" });
   }
 });
+
+//클럽활동 무한스크롤 조회 API
 
 module.exports = router;
