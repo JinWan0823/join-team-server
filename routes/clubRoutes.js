@@ -106,10 +106,13 @@ router.get("/:id", async (req, res) => {
       return;
     }
 
-    const limitedActivities = club.activity.slice(0, 3);
-    const limitedClub = { ...club, activity: limitedActivities };
-
-    res.status(200).json(limitedClub);
+    if (club.activity.length > 3) {
+      const limitedActivities = club.activity.slice(0, 3);
+      const limitedClub = { ...club, activity: limitedActivities };
+      res.status(200).json(limitedClub);
+    } else {
+      res.status(200).json(club);
+    }
   } catch (error) {
     console.error("데이터 조회 오류:", error);
     res.status(500).json({ error: "서버 오류 발생" });
