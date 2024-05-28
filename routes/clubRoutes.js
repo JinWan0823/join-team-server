@@ -132,8 +132,6 @@ router.get("/:id/activity", async (req, res) => {
     }
 
     const page = parseInt(req.query.page) || 1;
-
-    console.log(page);
     const itemsPerPage = 3;
 
     const startIndex = (page - 1) * itemsPerPage;
@@ -286,6 +284,30 @@ router.put("/:id", chkUser, clubUpload.single("images"), async (req, res) => {
   }
 });
 
-//클럽활동 무한스크롤 조회 API
+//클럽 인기 API
+router.get("/category/hot", async (req, res) => {
+  try {
+    const query = [
+      {
+        $sort: {
+          joinedMember: -1,
+        },
+      },
+    ];
+
+    const clubs = await db.collection("club").aggregate(query).toArray();
+
+    const page = parseInt(req.query.page) || 1;
+    const itemsPerPage = 15;
+    const startIndex = (page - 1) * itemsPerPage;
+
+    const club = clubs.slice(startIndex, startIndex + itemsPerPage);
+
+    res.status(200).json(club);
+  } catch (error) {
+    console.error("데이터 조회 오류:", error);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
 
 module.exports = router;
