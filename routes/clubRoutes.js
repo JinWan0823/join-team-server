@@ -298,7 +298,7 @@ router.get("/category/hot", async (req, res) => {
     const clubs = await db.collection("club").aggregate(query).toArray();
 
     const page = parseInt(req.query.page) || 1;
-    const itemsPerPage = 15;
+    const itemsPerPage = 10;
     const startIndex = (page - 1) * itemsPerPage;
 
     const club = clubs.slice(startIndex, startIndex + itemsPerPage);
@@ -310,4 +310,36 @@ router.get("/category/hot", async (req, res) => {
   }
 });
 
+//클럽 추천 API
+router.get("/category/interest", async (req, res) => {
+  try {
+    let interestList = [];
+    if (req.user && req.user.interestList) {
+      interestList = req.user.interestList.split("\\");
+    }
+
+    const query =
+      interestList.length > 0
+        ? [{ $match: { category: { $in: interestList } } }]
+        : [];
+
+    const page = parseInt(req.query.page) || 1;
+    const itemsPerPage = 10;
+    const startIndex = (page - 1) * itemsPerPage;
+
+    let clubs;
+    if (query.length === 0) {
+      clubs = await db.collection("club").find().toArray();
+    } else {
+      clubs = await db.collection("club").aggregate(query).toArray();
+    }
+
+    const paginatedClubs = clubs.slice(startIndex, startIndex + itemsPerPage);
+
+    res.status(200).json(paginatedClubs);
+  } catch (error) {
+    console.error("데이터 조회 오류:", error);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
 module.exports = router;
