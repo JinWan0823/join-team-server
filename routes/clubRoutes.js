@@ -24,8 +24,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/recommend", async (req, res) => {
-  console.log(req.user);
+router.get("/interest", async (req, res) => {
   try {
     if (req.user) {
       const interestList = req.user.interestList.split("\\");
