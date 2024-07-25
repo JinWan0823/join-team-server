@@ -169,6 +169,8 @@ router.post("/", chkUser, clubUpload.single("images"), async (req, res) => {
         masterName: req.user.name,
         sido: sido,
         gugun: gugun,
+        activity: [],
+        activityCount: 0,
         date: new Date(),
         member: [
           {
