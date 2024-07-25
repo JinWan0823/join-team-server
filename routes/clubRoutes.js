@@ -176,6 +176,13 @@ router.post("/", chkUser, clubUpload.single("images"), async (req, res) => {
           },
         ],
       });
+
+      await db.collection("chat").insertOne({
+        member: [req.user._id],
+        clubTitle: clubName,
+        date: new Date(),
+      });
+
       res.status(201).json(result);
     }
   } catch (error) {
