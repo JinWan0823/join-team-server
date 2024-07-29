@@ -15,6 +15,8 @@ const loginRoutes = require("./routes/loginRoutes");
 const logoutRoutes = require("./routes/logoutRoutes");
 const userRoutes = require("./routes/userRoutes");
 const searchRoutes = require("./routes/searchRoutes");
+const chatRoutes = require("./routes/chatRoutes");
+
 const initializePassport = require("./passport");
 const { extendSessionMiddleware } = require("./utils/middleware");
 
@@ -74,3 +76,4 @@ app.use("/login", loginRoutes);
 app.use("/logout", logoutRoutes);
 app.use("/user", userRoutes);
 app.use("/search", searchRoutes);
+app.use("/chat", chatRoutes);
