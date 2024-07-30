@@ -6,6 +6,18 @@ const session = require("express-session");
 const passport = require("passport");
 const MongoStore = require("connect-mongo");
 const crypto = require("crypto");
+
+const { createServer } = require("http");
+const { Server } = require("socket.io");
+const server = createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: ["http://localhost:3000", "https://join-team-rho.vercel.app"],
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
 require("dotenv").config();
 
 const clubRoutes = require("./routes/clubRoutes");
@@ -61,13 +73,21 @@ connectDB
     console.log("DB연결성공");
     db = client.db("joinTeam");
     initializePassport(db);
-    app.listen(8080, function () {
+    server.listen(8080, function () {
       console.log("listening on 8080");
     });
   })
   .catch((err) => {
     console.error(err);
   });
+
+io.on("connection", (socket) => {
+  console.log("어디서 소켓연결");
+
+  socket.on("데이터이름", (data) => {
+    console.log(data);
+  });
+});
 
 app.use("/club", clubRoutes);
 app.use("/feed", feedRoutes);
