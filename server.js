@@ -82,10 +82,11 @@ connectDB
   });
 
 io.on("connection", (socket) => {
-  console.log("어디서 소켓연결");
+  console.log("클라이언트 소켓연결");
 
-  socket.on("데이터이름", (data) => {
+  socket.on("joinRoom", (data) => {
     console.log(data);
+    socket.join(data);
   });
 });
 
