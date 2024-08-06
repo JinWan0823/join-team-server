@@ -88,6 +88,10 @@ io.on("connection", (socket) => {
     console.log(data);
     socket.join(data);
   });
+
+  socket.on("message", (data) => {
+    console.log(data);
+  });
 });
 
 app.use("/club", clubRoutes);
