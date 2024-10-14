@@ -9,6 +9,7 @@ const crypto = require("crypto");
 
 const { createServer } = require("http");
 const { Server } = require("socket.io");
+const { ObjectId } = require("mongodb");
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
@@ -85,12 +86,16 @@ io.on("connection", (socket) => {
   console.log("클라이언트 소켓연결");
 
   socket.on("joinRoom", (data) => {
-    console.log(data);
     socket.join(data);
   });
 
-  socket.on("message", (data) => {
-    console.log(data);
+  socket.on("message", async (data) => {
+    await db.collection("chatMessage").insertOne({
+      parentRoom: new ObjectId(data.room),
+      content: data.msg,
+    });
+    console.log("유저 msg", data);
+    io.to(data.room).emit("broadcast", data.msg);
   });
 });
 
