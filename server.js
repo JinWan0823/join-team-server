@@ -9,7 +9,6 @@ const crypto = require("crypto");
 
 const { createServer } = require("http");
 const { Server } = require("socket.io");
-const { ObjectId } = require("mongodb");
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
@@ -32,6 +31,7 @@ const chatRoutes = require("./routes/chatRoutes");
 
 const initializePassport = require("./passport");
 const { extendSessionMiddleware } = require("./utils/middleware");
+const socketHandlers = require("./sockets/socketHandlers");
 
 const generateRandomString = (length) => {
   return crypto
@@ -74,6 +74,7 @@ connectDB
     console.log("DB연결성공");
     db = client.db("joinTeam");
     initializePassport(db);
+    socketHandlers(io, db);
     server.listen(8080, function () {
       console.log("listening on 8080");
     });
@@ -81,23 +82,6 @@ connectDB
   .catch((err) => {
     console.error(err);
   });
-
-io.on("connection", (socket) => {
-  console.log("클라이언트 소켓연결");
-
-  socket.on("joinRoom", (data) => {
-    socket.join(data);
-  });
-
-  socket.on("message", async (data) => {
-    await db.collection("chatMessage").insertOne({
-      parentRoom: new ObjectId(data.room),
-      content: data.msg,
-    });
-    console.log("유저 msg", data);
-    io.to(data.room).emit("broadcast", data.msg);
-  });
-});
 
 app.use("/club", clubRoutes);
 app.use("/feed", feedRoutes);
