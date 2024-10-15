@@ -30,4 +30,19 @@ router.get("/list", async (req, res) => {
   }
 });
 
+router.get("/:roomId", async (req, res) => {
+  const roomId = req.params.roomId;
+  try {
+    const messages = await db
+      .collection("chatMessage")
+      .find({ parentRoom: new ObjectId(roomId) })
+      .toArray();
+    console.log(messages);
+    res.status(200).json(messages);
+  } catch (err) {
+    console.error("메시지 불러오기 오류", err);
+    res.status(500).json({ message: "메시지를 불러오는 데 실패했습니다." });
+  }
+});
+
 module.exports = router;

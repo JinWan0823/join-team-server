@@ -13,6 +13,8 @@ module.exports = (io, db) => {
         await db.collection("chatMessage").insertOne({
           parentRoom: new ObjectId(data.room),
           content: data.msg,
+          time: data.time,
+          who: data.user,
         });
         console.log("유저 msg", data);
         io.to(data.room).emit("broadcast", data.msg);
