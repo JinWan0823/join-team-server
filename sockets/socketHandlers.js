@@ -11,13 +11,13 @@ module.exports = (io, db) => {
     socket.on("message", async (data) => {
       try {
         await db.collection("chatMessage").insertOne({
-          parentRoom: new ObjectId(data.room),
-          content: data.msg,
+          parentRoom: new ObjectId(data.parentRoom),
+          content: data.content,
           time: data.time,
-          who: data.user,
+          who: data.who,
         });
         console.log("유저 msg", data);
-        io.to(data.room).emit("broadcast", data.msg);
+        io.to(data.parentRoom).emit("message", data);
       } catch (err) {
         console.error("메시지 저장 오류", err);
       }
