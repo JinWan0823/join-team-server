@@ -35,9 +35,40 @@ router.get("/:roomId", async (req, res) => {
   try {
     const messages = await db
       .collection("chatMessage")
-      .find({ parentRoom: new ObjectId(roomId) })
+      .aggregate([
+        {
+          $match: { parentRoom: new ObjectId(roomId) },
+        },
+        {
+          $addFields: { whoObjectId: { $toObjectId: "$who" } }, //user 필드의 _id 값과 타입일치
+        },
+        {
+          $lookup: {
+            from: "user",
+            localField: "whoObjectId",
+            foreignField: "_id",
+            as: "userInfo",
+          },
+        },
+        {
+          $unwind: {
+            path: "$userInfo",
+            preserveNullAndEmptyArrays: true, // user 정보가 없어도 메시지를 반환
+          },
+        },
+        {
+          $project: {
+            content: 1,
+            parentRoom: 1,
+            time: 1,
+            who: 1,
+            "userInfo.name": 1,
+            "userInfo.thumbnail": 1,
+          },
+        },
+      ])
       .toArray();
-    console.log(messages);
+
     res.status(200).json(messages);
   } catch (err) {
     console.error("메시지 불러오기 오류", err);
