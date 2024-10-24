@@ -183,6 +183,8 @@ router.post("/", chkUser, clubUpload.single("images"), async (req, res) => {
         member: [req.user._id],
         clubTitle: clubName,
         date: new Date(),
+        clubId: new ObjectId(result.insertedId),
+        thumb: images,
       });
 
       res.status(201).json(result);
@@ -242,6 +244,16 @@ router.post("/join/:id", chkUser, async (req, res) => {
       },
     }
   );
+
+  const joinedChat = await db.collection("chat").updateOne(
+    { clubId: new ObjectId(itemId) },
+    {
+      $addToSet: {
+        member: req.user._id,
+      },
+    }
+  );
+
   res.status(201).json({ message: "클럽에 가입되었습니다." });
 });
 
