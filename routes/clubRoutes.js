@@ -242,6 +242,27 @@ router.post("/join/:id", chkUser, async (req, res) => {
       },
     }
   );
+
+  // const joinedChat = await db.collection("chat").updateOne(
+  //   {
+  //     _id: new ObjectId(itemId),
+  //   },
+  //   {
+  //     $addToSet: {
+  //       member: new ObjectId(req.user._id),
+  //     },
+  //   }
+
+  // );
+  const joinedChat = await db.collection("chat").updateOne(
+    { clubId: new ObjectId(itemId) },
+    {
+      $addToSet: {
+        member: req.user._id,
+      },
+    }
+  );
+
   res.status(201).json({ message: "클럽에 가입되었습니다." });
 });
 
