@@ -183,6 +183,8 @@ router.post("/", chkUser, clubUpload.single("images"), async (req, res) => {
         member: [req.user._id],
         clubTitle: clubName,
         date: new Date(),
+        clubId: new ObjectId(result.insertedId),
+        thumb: images,
       });
 
       res.status(201).json(result);
@@ -243,17 +245,6 @@ router.post("/join/:id", chkUser, async (req, res) => {
     }
   );
 
-  // const joinedChat = await db.collection("chat").updateOne(
-  //   {
-  //     _id: new ObjectId(itemId),
-  //   },
-  //   {
-  //     $addToSet: {
-  //       member: new ObjectId(req.user._id),
-  //     },
-  //   }
-
-  // );
   const joinedChat = await db.collection("chat").updateOne(
     { clubId: new ObjectId(itemId) },
     {
