@@ -17,6 +17,14 @@ module.exports = (io, db) => {
           who: data.who,
         });
         console.log("유저 msg", data);
+
+        await db
+          .collection("chat")
+          .updateOne(
+            { _id: new ObjectId(data.parentRoom) },
+            { $set: { lastMessageTime: data.time } }
+          );
+
         io.to(data.parentRoom).emit("message", data);
       } catch (err) {
         console.error("메시지 저장 오류", err);
