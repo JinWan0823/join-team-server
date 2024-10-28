@@ -198,7 +198,7 @@ router.post("/", chkUser, clubUpload.single("images"), async (req, res) => {
 //클럽 참가 API
 router.post("/join/:id", chkUser, async (req, res) => {
   const itemId = req.params.id;
-  console.log(req.user._id);
+
   const club = await db
     .collection("club")
     .findOne({ _id: new ObjectId(itemId) });
@@ -223,7 +223,7 @@ router.post("/join/:id", chkUser, async (req, res) => {
     return res.status(400).json({ message: "정원 초과" });
   }
 
-  const joinedClub = await db.collection("club").updateOne(
+  await db.collection("club").updateOne(
     { _id: new ObjectId(itemId) },
     {
       $addToSet: {
@@ -234,7 +234,7 @@ router.post("/join/:id", chkUser, async (req, res) => {
     }
   );
 
-  const updatedUser = await db.collection("user").updateOne(
+  await db.collection("user").updateOne(
     { _id: new ObjectId(req.user._id) },
     {
       $addToSet: {
@@ -245,7 +245,7 @@ router.post("/join/:id", chkUser, async (req, res) => {
     }
   );
 
-  const joinedChat = await db.collection("chat").updateOne(
+  await db.collection("chat").updateOne(
     { clubId: new ObjectId(itemId) },
     {
       $addToSet: {
