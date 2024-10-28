@@ -30,5 +30,19 @@ module.exports = (io, db) => {
         console.error("메시지 저장 오류", err);
       }
     });
+
+    socket.on("userJoined", async (data) => {
+      try {
+        await db.collection("chatMessage").insertOne({
+          parentRoom: new ObjectId(data.parentRoom),
+          content: "system 메세지",
+          time: data.time,
+          who: "신규유저",
+        });
+        io.to(data.parentRoom).emit("userJoined", data);
+      } catch (err) {
+        console.error("메시지 저장 오류", err);
+      }
+    });
   });
 };
