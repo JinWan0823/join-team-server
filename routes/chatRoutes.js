@@ -32,6 +32,7 @@ router.get("/list", async (req, res) => {
 
 router.get("/:roomId", async (req, res) => {
   const roomId = req.params.roomId;
+  console.log(roomId);
   try {
     const messages = await db
       .collection("chatMessage")
@@ -40,7 +41,15 @@ router.get("/:roomId", async (req, res) => {
           $match: { parentRoom: new ObjectId(roomId) },
         },
         {
-          $addFields: { whoObjectId: { $toObjectId: "$who" } }, //user 필드의 _id 값과 타입일치
+          $addFields: {
+            whoObjectId: {
+              $cond: {
+                if: { $eq: ["$who", "System Message"] },
+                then: null,
+                else: { $toObjectId: "$who" },
+              },
+            },
+          },
         },
         {
           $lookup: {
@@ -53,7 +62,7 @@ router.get("/:roomId", async (req, res) => {
         {
           $unwind: {
             path: "$userInfo",
-            preserveNullAndEmptyArrays: true, // user 정보가 없어도 메시지를 반환
+            preserveNullAndEmptyArrays: true,
           },
         },
         {
@@ -75,5 +84,4 @@ router.get("/:roomId", async (req, res) => {
     res.status(500).json({ message: "메시지를 불러오는 데 실패했습니다." });
   }
 });
-
 module.exports = router;
