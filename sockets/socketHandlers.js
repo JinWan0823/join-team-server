@@ -41,7 +41,7 @@ module.exports = (io, db) => {
     });
 
     socket.on("userJoined", async (data) => {
-      console.log("Received userJoined data:", data); // 데이터 내용 출력
+      // console.log("Received userJoined data:", data); // 데이터 내용 출력
       try {
         let userName;
         if (data.who === "System Message") {
@@ -59,6 +59,7 @@ module.exports = (io, db) => {
           content: "system 메세지",
           time: data.time,
           who: "System Message",
+          userId: data.userId,
         });
         console.log("Message inserted:", joined);
         io.to(data.parentRoom).emit("userJoined", data);

@@ -71,6 +71,7 @@ router.get("/:roomId", async (req, res) => {
             parentRoom: 1,
             time: 1,
             who: 1,
+            userId: 1,
             "userInfo.name": 1,
             "userInfo.thumbnail": 1,
           },
