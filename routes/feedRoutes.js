@@ -17,7 +17,20 @@ connectDB
 // 피드 조회 API
 router.get("/", async (req, res) => {
   try {
-    let result = await db.collection("feed").find().toArray();
+    let feeds = await db.collection("feed").find().sort({ date: -1 }).toArray();
+
+    const result = await Promise.all(
+      feeds.map(async (feed) => {
+        const user = await db.collection("user").findOne({ _id: feed.writer });
+
+        return {
+          ...feed,
+          username: user.name,
+          thumbnail: user.thumbnail,
+        };
+      })
+    );
+
     res.status(200).json(result);
   } catch (err) {
     console.error("데이터 조회 오류 : ", err);
