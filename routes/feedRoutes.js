@@ -14,10 +14,21 @@ connectDB
     console.log(err);
   });
 
-// 피드 조회 API
 router.get("/", async (req, res) => {
+  const query = req.query.val;
+  console.log("feed 쿼리", query);
   try {
-    let feeds = await db.collection("feed").find().sort({ date: -1 }).toArray();
+    let feeds;
+
+    if (query) {
+      feeds = await db
+        .collection("feed")
+        .find({ hashTag: { $regex: new RegExp(`(^|\\\\)${query}(\\\\|$)`) } })
+        .sort({ date: -1 })
+        .toArray();
+    } else {
+      feeds = await db.collection("feed").find().sort({ date: -1 }).toArray();
+    }
 
     const result = await Promise.all(
       feeds.map(async (feed) => {
