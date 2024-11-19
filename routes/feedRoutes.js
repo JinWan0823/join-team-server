@@ -28,16 +28,6 @@ router.get("/", async (req, res) => {
 // 마이피드 조회 API
 router.get("/myfeed", chkUser, async (req, res) => {
   const userId = req.user._id;
-  // try {
-  //   let result = await db
-  //     .collection("feed")
-  //     .find({ writer: new ObjectId(userId) })
-  //     .toArray();
-  //   res.status(200).json(result);
-  // } catch (error) {
-  //   console.error("데이터 조회 오류 : ", error);
-  //   res.status(500).json({ error: "서버 오류 발생" });
-  // }
 
   try {
     const [user, feeds] = await Promise.all([
@@ -45,6 +35,7 @@ router.get("/myfeed", chkUser, async (req, res) => {
       db
         .collection("feed")
         .find({ writer: new ObjectId(userId) })
+        .sort({ date: -1 })
         .toArray(),
     ]);
 
