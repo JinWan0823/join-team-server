@@ -42,7 +42,13 @@ router.get("/", async (req, res) => {
       })
     );
 
-    res.status(200).json(result);
+    const page = parseInt(req.query.page) || 1;
+    const itemsPerPage = 3;
+    const startIndex = (page - 1) * itemsPerPage;
+
+    const feed = result.slice(startIndex, startIndex + itemsPerPage);
+
+    res.status(200).json(feed);
   } catch (err) {
     console.error("데이터 조회 오류 : ", err);
     res.status(500).json({ error: "서버 오류 발생" });
