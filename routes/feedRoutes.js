@@ -16,7 +16,6 @@ connectDB
 
 router.get("/", async (req, res) => {
   const query = req.query.val;
-  console.log("feed 쿼리", query);
   try {
     let feeds;
 
@@ -140,6 +139,7 @@ router.post("/", feedUpload.array("images", 10), async (req, res) => {
         writer: req.user._id,
         username: req.user.name,
         date: new Date(),
+        likedBy: [],
       });
       await db.collection("user").updateOne(
         { _id: req.user._id },
@@ -215,8 +215,51 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-//전체 피드 조회 API , 팔로잉 우선 노출
+//피드 Liked API
+router.post("/like/:id", async (req, res) => {
+  const itemId = req.params.id;
+  const userId = req.user._id;
 
-// router.get('')
+  try {
+    const feed = await db
+      .collection("feed")
+      .findOne({ _id: new ObjectId(itemId) });
+    const isLiked = feed.likedBy
+      .map((id) => id.toString())
+      .includes(userId.toString());
+
+    const updateOperation = isLiked
+      ? { $pull: { likedBy: userId } }
+      : { $addToSet: { likedBy: userId } };
+
+    await db
+      .collection("feed")
+      .updateOne({ _id: new ObjectId(itemId) }, updateOperation);
+
+    res
+      .status(200)
+      .json({ message: isLiked ? "좋아요 취소 성공" : "좋아요 추가 성공" });
+  } catch (error) {
+    console.error("데이터 삭제 오류 : ", error);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
+
+//피드 Liked 조회 API
+router.get("/like/:id", async (req, res) => {
+  const itemId = req.params.id;
+  try {
+    const result = await db
+      .collection("feed")
+      .findOne(
+        { _id: new ObjectId(itemId) },
+        { projection: { likedBy: 1, _id: 0 } }
+      );
+    res.status(200).json(result.likedBy);
+  } catch (error) {
+    console.error("데이터 삭제 오류 : ", error);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
 
 module.exports = router;
