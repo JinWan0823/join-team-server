@@ -140,6 +140,7 @@ router.post("/", feedUpload.array("images", 10), async (req, res) => {
         writer: req.user._id,
         username: req.user.name,
         date: new Date(),
+        likedBy: [],
       });
       await db.collection("user").updateOne(
         { _id: req.user._id },
@@ -215,8 +216,23 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-//전체 피드 조회 API , 팔로잉 우선 노출
-
-// router.get('')
+//피드 Liked API
+router.post("/like/:id", async (req, res) => {
+  const itemId = req.params.id;
+  const userId = req.user._id;
+  try {
+    const result = await db.collection("feed").updateOne(
+      { _id: new ObjectId(itemId) },
+      {
+        $addToSet: {
+          likedBy: userId,
+        },
+      }
+    );
+  } catch (error) {
+    console.error("데이터 삭제 오류 : ", error);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
 
 module.exports = router;
