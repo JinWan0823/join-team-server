@@ -28,11 +28,25 @@ router.get("/interest", async (req, res) => {
   try {
     if (req.user) {
       const interestList = req.user.interestList.split("\\");
-      const clubs = await db
+      console.log(interestList);
+      let clubs = await db
         .collection("club")
         .find({ category: { $in: interestList } })
         .toArray();
-      const randomClubs = getRandomElements(clubs, 3);
+
+      // 클럽 개수가 3개보다 적을 경우 부족한 만큼 추가
+      if (clubs.length < 3) {
+        const allClubs = await db.collection("club").find().toArray();
+        const additionalClubs = getRandomElements(
+          allClubs.filter(
+            (club) => !clubs.some((item) => item._id.equals(club._id))
+          ), // 중복 제거
+          3 - clubs.length
+        );
+        clubs = [...clubs, ...additionalClubs]; // 기존 클럽 + 추가 클럽
+      }
+
+      const randomClubs = getRandomElements(clubs, 3); // 최종 3개 랜덤
       res.status(200).json(randomClubs);
     } else {
       const allClubs = await db.collection("club").find().toArray();
