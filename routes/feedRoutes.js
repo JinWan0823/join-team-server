@@ -219,16 +219,26 @@ router.delete("/:id", async (req, res) => {
 router.post("/like/:id", async (req, res) => {
   const itemId = req.params.id;
   const userId = req.user._id;
+
   try {
-    const result = await db.collection("feed").updateOne(
-      { _id: new ObjectId(itemId) },
-      {
-        $addToSet: {
-          likedBy: userId,
-        },
-      }
-    );
-    res.status(201).json({ message: "좋아요 수정 성공" });
+    const feed = await db
+      .collection("feed")
+      .findOne({ _id: new ObjectId(itemId) });
+    const isLiked = feed.likedBy
+      .map((id) => id.toString())
+      .includes(userId.toString());
+
+    const updateOperation = isLiked
+      ? { $pull: { likedBy: userId } }
+      : { $addToSet: { likedBy: userId } };
+
+    await db
+      .collection("feed")
+      .updateOne({ _id: new ObjectId(itemId) }, updateOperation);
+
+    res
+      .status(200)
+      .json({ message: isLiked ? "좋아요 취소 성공" : "좋아요 추가 성공" });
   } catch (error) {
     console.error("데이터 삭제 오류 : ", error);
     res.status(500).json({ error: "서버 오류 발생" });
@@ -238,8 +248,6 @@ router.post("/like/:id", async (req, res) => {
 //피드 Liked 조회 API
 router.get("/like/:id", async (req, res) => {
   const itemId = req.params.id;
-  console.log(itemId);
-
   try {
     const result = await db
       .collection("feed")
