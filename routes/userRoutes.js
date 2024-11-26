@@ -89,6 +89,23 @@ router.put(
   }
 );
 
+// 유저 팔로우 조회 API
+router.post("/follow", chkUser, async (req, res) => {
+  const user = req.user;
+  const followId = req.body.followId;
+  try {
+    const followObjectId = new ObjectId(followId);
+    const userData = await db.collection("user").findOne({ _id: user._id });
+    const isFollowing = userData.followings.some(
+      (id) => id.toString() === followObjectId.toString()
+    );
+    res.status(200).json({ isFollowing });
+  } catch (error) {
+    console.error("팔로우 조회 오류:", error);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
+
 //유저 팔로우 신청/취소 API
 router.put("/follow/:id", chkUser, async (req, res) => {
   const user = req.user;
