@@ -16,10 +16,10 @@ const feedUpload = multer({
     s3: s3,
     bucket: "jointeam",
     key: function (req, file, cb) {
-      cb(
-        null,
-        "feed_images/" + Date.now().toString() + "_" + file.originalname
-      );
+      const uniqueKey = `feed_images/${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 11)}_${file.originalname}`;
+      cb(null, uniqueKey);
     },
   }),
 });
@@ -29,10 +29,10 @@ const clubUpload = multer({
     s3: s3,
     bucket: "jointeam",
     key: function (req, file, cb) {
-      cb(
-        null,
-        "club_images/" + Date.now().toString() + "_" + file.originalname
-      );
+      const uniqueKey = `club_images/${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 11)}_${file.originalname}`;
+      cb(null, uniqueKey);
     },
   }),
 });
@@ -42,10 +42,10 @@ const userUpload = multer({
     s3: s3,
     bucket: "jointeam",
     key: function (req, file, cb) {
-      cb(
-        null,
-        "user_images/" + Date.now().toString() + "_" + file.originalname
-      );
+      const uniqueKey = `user_images/${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 11)}_${file.originalname}`;
+      cb(null, uniqueKey);
     },
   }),
 });

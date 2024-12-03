@@ -90,8 +90,14 @@ router.put(
 );
 
 // 유저 팔로우 조회 API
-router.post("/follow", chkUser, async (req, res) => {
+router.post("/follow", async (req, res) => {
   const user = req.user;
+
+  if (!user) {
+    res.status(200).json({ isFollowing: false });
+    return;
+  }
+
   const followId = req.body.followId;
   try {
     const followObjectId = new ObjectId(followId);
