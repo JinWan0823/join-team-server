@@ -121,6 +121,7 @@ router.post("/", feedUpload.array("images", 10), async (req, res) => {
   let imagesLocation = [];
 
   images.forEach((img) => {
+    console.log(img.location);
     imagesLocation.push(img.location);
   });
   try {
