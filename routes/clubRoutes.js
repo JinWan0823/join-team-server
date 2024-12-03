@@ -201,6 +201,17 @@ router.post("/", chkUser, clubUpload.single("images"), async (req, res) => {
         thumb: images,
       });
 
+      await db.collection("user").updateOne(
+        { _id: new ObjectId(req.user._id) },
+        {
+          $addToSet: {
+            joinedClub: {
+              clubId: new ObjectId(result.insertedId),
+            },
+          },
+        }
+      );
+
       res.status(201).json(result);
     }
   } catch (error) {
