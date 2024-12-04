@@ -24,8 +24,16 @@ module.exports = (io, db) => {
           who: data.who,
         });
 
-        await db
+        const debug = await db
           .collection("chat")
+          .updateOne(
+            { _id: new ObjectId(data.parentRoom) },
+            { $set: { lastMessageTime: data.time } }
+          );
+        console.log(debug);
+
+        await db
+          .collection("club")
           .updateOne(
             { _id: new ObjectId(data.parentRoom) },
             { $set: { lastMessageTime: data.time } }
