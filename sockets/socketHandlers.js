@@ -27,8 +27,8 @@ module.exports = (io, db) => {
         const debug = await db
           .collection("chat")
           .updateOne(
-            { _id: new ObjectId(data.parentRoom) },
-            { $set: { lastMessageTime: data.time } }
+            { clubId: new ObjectId(data.parentRoom) },
+            { $set: { lastMessageTime: data.time, lastMessage: data.content } }
           );
         console.log(debug);
 
