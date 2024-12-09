@@ -121,7 +121,6 @@ router.post("/", feedUpload.array("images", 10), async (req, res) => {
   let imagesLocation = [];
 
   images.forEach((img) => {
-    console.log(img.location);
     imagesLocation.push(img.location);
   });
   try {
@@ -160,7 +159,6 @@ router.post("/", feedUpload.array("images", 10), async (req, res) => {
 
 //피드 수정 API
 router.put("/:id", feedUpload.array("images", 10), async (req, res) => {
-  console.log(req.files);
   const itemId = req.params.id;
   const content = req.body.content;
   const hashTag = req.body.hashTag;
@@ -208,7 +206,6 @@ router.delete("/:id", async (req, res) => {
         },
       }
     );
-    console.log(result);
     res.status(204).json({ message: "데이터 삭제 성공" });
   } catch (error) {
     console.error("데이터 삭제 오류 : ", error);

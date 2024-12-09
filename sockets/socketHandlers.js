@@ -24,13 +24,12 @@ module.exports = (io, db) => {
           who: data.who,
         });
 
-        const debug = await db
+        await db
           .collection("chat")
           .updateOne(
             { clubId: new ObjectId(data.parentRoom) },
             { $set: { lastMessageTime: data.time, lastMessage: data.content } }
           );
-        console.log(debug);
 
         await db
           .collection("club")
@@ -69,7 +68,6 @@ module.exports = (io, db) => {
           who: "System Message",
           userId: data.userId,
         });
-        console.log("Message inserted:", joined);
         io.to(data.parentRoom).emit("userJoined", data);
       } catch (err) {
         console.error("메시지 저장 오류", err);

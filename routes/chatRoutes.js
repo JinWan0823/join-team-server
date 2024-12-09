@@ -32,7 +32,6 @@ router.get("/list", async (req, res) => {
 
 router.get("/:roomId", async (req, res) => {
   const roomId = req.params.roomId;
-  console.log(roomId);
   try {
     const messages = await db
       .collection("chatMessage")
