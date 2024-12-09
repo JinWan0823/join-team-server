@@ -12,7 +12,11 @@ const { Server } = require("socket.io");
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "https://join-team-rho.vercel.app"],
+    origin: [
+      "http://localhost:3000", // 로컬 개발 주소
+      "https://join-team-rho.vercel.app", // 배포된 클라이언트 주소
+      "https://new-client-url.com", // 추가된 클라이언트 주소
+    ],
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -45,19 +49,25 @@ const newSecret = generateRandomString(32);
 app.use(express.static(__dirname + "/public"));
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://join-team-rho.vercel.app/"],
-    credentials: true,
+    origin: [
+      "http://localhost:3000", // 로컬 환경 허용
+      "http://jointeamserver-env.eba-mxsmsvyv.ap-northeast-2.elasticbeanstalk.com", // 배포된 서버 허용
+      "https://join-team-rho.vercel.app", // 클라이언트 배포 주소
+    ],
+    credentials: true, // 쿠키 전송 허용
   })
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(passport.initialize());
 app.use(
   session({
     secret: "password",
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 60 * 60 * 1000 },
+    cookie: {
+      maxAge: 60 * 60 * 1000,
+      secure: process.env.NODE_ENV === "production",
+    },
     store: MongoStore.create({
       mongoUrl:
         "mongodb+srv://admin:Wlsdhks21!@cluster0.r8evwke.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
@@ -65,6 +75,7 @@ app.use(
     }),
   })
 );
+app.use(passport.initialize());
 app.use(passport.session());
 app.use(extendSessionMiddleware);
 

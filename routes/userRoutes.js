@@ -19,7 +19,6 @@ router.get("/", chkUser, async (req, res) => {
   try {
     if (user) {
       const result = await db.collection("user").findOne({ _id: user._id });
-      console.log(result);
       res.status(200).json(result);
     } else {
       res.status(401).json({ message: "인증되지 않은 사용자입니다." });
@@ -122,13 +121,10 @@ router.put("/follow/:id", chkUser, async (req, res) => {
       return res.status(404).json({ error: "해당 유저를 찾을 수 없습니다." });
     }
     const userData = await db.collection("user").findOne({ _id: user._id });
-    console.log(new ObjectId(itemId));
-    console.log(userData.followings);
 
     if (
       userData.followings.some((following) => following.toString() === itemId)
     ) {
-      console.log("팔로 취소");
       const followingData = await db.collection("user").updateOne(
         { _id: new ObjectId(itemId) },
         {

@@ -28,7 +28,6 @@ router.get("/interest", async (req, res) => {
   try {
     if (req.user) {
       const interestList = req.user.interestList.split("\\");
-      console.log(interestList);
       let clubs = await db
         .collection("club")
         .find({ category: { $in: interestList } })
@@ -170,7 +169,6 @@ router.post("/", chkUser, clubUpload.single("images"), async (req, res) => {
   const sido = req.body.sido;
   const gugun = req.body.gugun || "";
   try {
-    console.log(images);
     if (!clubName || !category || !images || !information || !sido) {
       res.status(400).json({ message: "Bad Request : 잘못된 요청입니다." });
     } else {
@@ -229,12 +227,8 @@ router.post("/join/:id", chkUser, async (req, res) => {
     .findOne({ _id: new ObjectId(itemId) });
 
   const isMember = club.member.some((member) => {
-    console.log(member.memberId);
-    console.log(req.user._id);
     return member.memberId.toString() === req.user._id.toString();
   });
-
-  console.log(isMember);
 
   if (isMember) {
     return res.status(400).json({ message: "이미 가입한 클럽입니다." });
@@ -288,8 +282,6 @@ router.put("/:id", chkUser, clubUpload.single("images"), async (req, res) => {
   const clubData = await db
     .collection("club")
     .findOne({ _id: new ObjectId(clubId) });
-  console.log(clubData.master);
-  console.log(req.user._id);
   if (clubData.master.toString() !== req.user._id.toString()) {
     return res.status(401).json({ message: "인증되지 않은 사용자입니다." });
   }
