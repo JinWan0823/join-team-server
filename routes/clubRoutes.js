@@ -110,6 +110,7 @@ router.get("/myclub/:id", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const itemId = req.params.id;
+    const userId = req.user?._id;
     const club = await db
       .collection("club")
       .findOne({ _id: new ObjectId(itemId) });
@@ -118,12 +119,20 @@ router.get("/:id", async (req, res) => {
       return;
     }
 
+    console.log(club.member, userId);
+
+    const isJoined = userId
+      ? club.member.some(
+          (member) => member.memberId.toString() === userId.toString()
+        )
+      : false;
+
     if (club.activity.length > 3) {
       const limitedActivities = club.activity.slice(0, 3);
-      const limitedClub = { ...club, activity: limitedActivities };
+      const limitedClub = { ...club, activity: limitedActivities, isJoined };
       res.status(200).json(limitedClub);
     } else {
-      res.status(200).json(club);
+      res.status(200).json({ ...club, isJoined });
     }
   } catch (error) {
     console.error("데이터 조회 오류:", error);
