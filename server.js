@@ -14,7 +14,7 @@ const io = new Server(server, {
   cors: {
     origin: [
       "http://localhost:3000", // 로컬 개발 주소
-      "https://join-team-rho.vercel.app", // 배포된 클라이언트 주소
+      "https://master.d10cozylpfiq8l.amplifyapp.com/", // 배포된 클라이언트 주소
       "https://new-client-url.com", // 추가된 클라이언트 주소
     ],
     methods: ["GET", "POST"],
@@ -52,7 +52,7 @@ app.use(
     origin: [
       "http://localhost:3000", // 로컬 환경 허용
       "http://jointeamserver-env.eba-mxsmsvyv.ap-northeast-2.elasticbeanstalk.com", // 배포된 서버 허용
-      "https://join-team-rho.vercel.app", // 클라이언트 배포 주소
+      "https://master.d10cozylpfiq8l.amplifyapp.com/", // 클라이언트 배포 주소
     ],
     credentials: true, // 쿠키 전송 허용
   })
