@@ -167,6 +167,27 @@ router.put("/follow/:id", chkUser, async (req, res) => {
   }
 });
 
+//유저 팔로우 조회 api
+router.get("/isfollow/:id", chkUser, async (req, res) => {
+  const user = req.user._id;
+  const targetId = req.params.id;
+
+  try {
+    const result = await db
+      .collection("user")
+      .findOne({ _id: new ObjectId(targetId) });
+
+    console.log("팔로워 : ", result.followers, "user : ", user);
+    const isFollowing = result.followers.some(
+      (follower) => follower.toString() === user.toString()
+    );
+
+    return res.status(200).json({ isFollowing });
+  } catch (error) {
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
+
 module.exports = router;
 new ObjectId("660a6ef37ff07fde43e015ed");
 new ObjectId("660a6ef37ff07fde43e015ed");
