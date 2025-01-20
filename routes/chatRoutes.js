@@ -14,7 +14,7 @@ connectDB
     console.log(err);
   });
 
-router.get("/list", async (req, res) => {
+router.get("/list", chkUser, async (req, res) => {
   let result;
 
   if (req.user) {

@@ -18,6 +18,7 @@ router.post("/", (req, res, next) => {
     if (!user) return res.status(401).json(info.message);
     req.logIn(user, (err) => {
       if (err) return next(err);
+      console.log("Session ID:", req.session.id);
       res.status(201).json(user);
     });
   })(req, res, next);

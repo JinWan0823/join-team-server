@@ -13,11 +13,10 @@ const server = createServer(app);
 const io = new Server(server, {
   cors: {
     origin: [
-      "http://localhost:3000", // 로컬 개발 주소
-      "https://master.d10cozylpfiq8l.amplifyapp.com/", // 배포된 클라이언트 주소
-      "https://new-client-url.com", // 추가된 클라이언트 주소
+      "https://master.d10cozylpfiq8l.amplifyapp.com",
+      "http://localhost:3000",
     ],
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
 });
@@ -50,23 +49,28 @@ app.use(express.static(__dirname + "/public"));
 app.use(
   cors({
     origin: [
-      "http://localhost:3000", // 로컬 환경 허용
-      "http://jointeamserver-env.eba-mxsmsvyv.ap-northeast-2.elasticbeanstalk.com", // 배포된 서버 허용
-      "https://master.d10cozylpfiq8l.amplifyapp.com/", // 클라이언트 배포 주소
+      "https://master.d10cozylpfiq8l.amplifyapp.com",
+      "http://localhost:3000",
     ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true, // 쿠키 전송 허용
   })
 );
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+const isSecure = process.env.SESSION_SECURE === "true";
+app.set("trust proxy", 1); // Proxy 신뢰 설정 추가
+
+app.use(express.json({ limit: "20mb" }));
+app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 app.use(
   session({
-    secret: "password",
-    resave: false,
-    saveUninitialized: false,
+    secret: "password", // 세션 암호화 키
+    resave: false, // 세션을 항상 저장하지 않음
+    saveUninitialized: false, // 초기화되지 않은 세션을 저장하지 않음
     cookie: {
-      maxAge: 60 * 60 * 1000,
-      secure: process.env.NODE_ENV === "production",
+      sameSite: isSecure ? "none" : "lax",
+      maxAge: 60 * 60 * 1000, // 1시간
+      secure: isSecure, // HTTPS 사용
     },
     store: MongoStore.create({
       mongoUrl:
@@ -79,6 +83,13 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(extendSessionMiddleware);
 
+console.log("Cookie options:", {
+  sameSite: "none",
+  secure: isSecure,
+});
+
+const PORT = process.env.PORT || 8080;
+
 let db;
 connectDB
   .then((client) => {
@@ -86,8 +97,8 @@ connectDB
     db = client.db("joinTeam");
     initializePassport(db);
     socketHandlers(io, db);
-    server.listen(8080, function () {
-      console.log("listening on 8080");
+    server.listen(PORT, function () {
+      console.log(`listening on ${PORT}`);
     });
   })
   .catch((err) => {

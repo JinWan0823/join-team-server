@@ -214,7 +214,7 @@ router.delete("/:id", async (req, res) => {
 });
 
 //피드 Liked API
-router.post("/like/:id", async (req, res) => {
+router.post("/like/:id", chkUser, async (req, res) => {
   const itemId = req.params.id;
   const userId = req.user._id;
 
